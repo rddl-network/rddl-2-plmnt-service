@@ -6,22 +6,54 @@ import (
 	"log"
 	"os/exec"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
 
+type MintRequestResponse struct {
+	Request MintRequest `json:"mintRequest"`
+}
+
 type MintRequest struct {
-	Beneficiary  string
-	Amount       uint64
-	LiquidTXHash string
+	Beneficiary  string `json:"beneficiary"`
+	Amount       string `json:"amount"`
+	LiquidTXHash string `json:"liquidTXHash"`
+}
+
+type GetTransactionDetailsResult struct {
+	Account           string   `json:"account"`
+	Address           string   `json:"address,omitempty"`
+	Amount            float64  `json:"amount"`
+	Category          string   `json:"category"`
+	InvolvesWatchOnly bool     `json:"involveswatchonly,omitempty"`
+	Fee               *float64 `json:"fee,omitempty"`
+	Vout              uint32   `json:"vout"`
+}
+
+// GetTransactionResult models the data from the gettransaction command.
+type GetTransactionResult struct {
+	Amount          map[string]float64            `json:"amount"`
+	Fee             float64                       `json:"fee,omitempty"`
+	Confirmations   int64                         `json:"confirmations"`
+	BlockHash       string                        `json:"blockhash"`
+	BlockIndex      int64                         `json:"blockindex"`
+	BlockTime       int64                         `json:"blocktime"`
+	TxID            string                        `json:"txid"`
+	WalletConflicts []string                      `json:"walletconflicts"`
+	Time            int64                         `json:"time"`
+	TimeReceived    int64                         `json:"timereceived"`
+	Details         []GetTransactionDetailsResult `json:"details"`
+	Hex             string                        `json:"hex"`
 }
 
 var (
 	planetmint        string
 	planetmintAddress string
 	planetmintKeyring string
+	rpcHost           string
+	rpcUser           string
+	rpcPass           string
 	client            *rpcclient.Client
 )
 
@@ -38,19 +70,42 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 		return
 	}
 
-	planetmint := v.GetString("PLANETMINT_GO")
-	planetmintAddress := v.GetString("PLANETMINT_ADDRESS")
+	planetmint = v.GetString("PLANETMINT_GO")
+	planetmintAddress = v.GetString("PLANETMINT_ADDRESS")
 	planetmintKeyring = v.GetString("PLANETMINT_KEYRING")
 	if err != nil || planetmint == "" || planetmintAddress == "" {
 		panic("Could not read configuration")
 	}
 
-	//check for rpc params
+	rpcHost = v.GetString("RPC_HOST")
+	rpcUser = v.GetString("RPC_USER")
+	rpcPass = v.GetString("RPC_PASS")
+	if rpcHost == "" || rpcUser == "" || rpcPass == "" {
+		panic("Could not read configuration")
+	}
 
 	return
 }
 
-func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) {
+func checkMintRequest(txhash string) (mintRequest MintRequestResponse, err error) {
+	cmdStr := fmt.Sprintf("%s query dao get-mint-requests-by-hash %s -o json", planetmint, txhash)
+
+	cmd := exec.Command("bash", "-c", cmdStr)
+	out, err := cmd.Output()
+	if err != nil {
+		fmt.Println("could not run command: ", err)
+	}
+	fmt.Println("Output: ", string(out))
+
+	err = json.Unmarshal(out, &mintRequest)
+	if err != nil {
+		return mintRequest, err
+	}
+
+	return
+}
+
+func mintPLMNT(beneficiary string, amount string, liquidTxHash string) {
 	mintRequest := MintRequest{
 		Beneficiary:  beneficiary,
 		Amount:       amount,
@@ -76,25 +131,48 @@ func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) {
 	fmt.Println("Output: ", string(out))
 }
 
+func getLiquidTx(txhash string) (liquidTx GetTransactionResult, err error) {
+	cmdStr := fmt.Sprintf("elements-cli -rpcpassword=%s -rpcuser=%s -rpcport=18884 -rpcconnect=%s gettransaction %s", rpcPass, rpcUser, rpcHost, txhash)
+	cmd := exec.Command("bash", "-c", cmdStr)
+
+	out, err := cmd.Output()
+	if err != nil {
+		fmt.Println("could not run command: ", err)
+	}
+	fmt.Println("Output: ", string(out))
+
+	err = json.Unmarshal(out, &liquidTx)
+	if err != nil {
+		return liquidTx, err
+	}
+
+	return
+}
+
 func postIssue(c *gin.Context) {
 	txhash := c.Param("txhash")
 
-	chainhash, err := chainhash.NewHashFromStr(txhash)
+	fmt.Println("CHECK MINT REQUEST")
+	mr, err := checkMintRequest(txhash)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	txResult, err := client.GetTransaction(chainhash)
+	fmt.Println("MintRequest: ", mr.Request)
+
+	fmt.Println("GET LIQUID HASH")
+	tx, err := getLiquidTx(txhash)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
+	fmt.Println(tx.Amount)
 
 	// TODO: read txResult beneficiary/amount
-	fmt.Println(txResult)
-
-	mintPLMNT("bene", 1000, txhash)
+	// fmt.Println(txResult)
+	// mintPLMNT("bene", 1000, txhash)
 }
 
 func setupRPCClient(config *viper.Viper) *rpcclient.Client {
@@ -116,7 +194,7 @@ func setupRPCClient(config *viper.Viper) *rpcclient.Client {
 
 func startWebService(config *viper.Viper) {
 	router := gin.Default()
-	router.POST("/issue/:txhash", postIssue)
+	router.POST("/mint/:txhash", postIssue)
 
 	bindAddress := config.GetString("SERVICE_BIND")
 	servicePort := config.GetString("SERVICE_PORT")
