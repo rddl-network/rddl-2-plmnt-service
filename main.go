@@ -18,10 +18,12 @@ type MintRequest struct {
 	LiquidTXHash string
 }
 
-var planetmint string
-var planetmintAddress string
-var planetmintKeyring string
-var client *rpcclient.Client
+var (
+	planetmint        string
+	planetmintAddress string
+	planetmintKeyring string
+	client            *rpcclient.Client
+)
 
 func loadConfig(path string) (v *viper.Viper, err error) {
 	v = viper.New()
@@ -34,8 +36,16 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 	err = v.ReadInConfig()
 	if err != nil {
 		return
-		// panic(err)
 	}
+
+	planetmint := v.GetString("PLANETMINT_GO")
+	planetmintAddress := v.GetString("PLANETMINT_ADDRESS")
+	planetmintKeyring = v.GetString("PLANETMINT_KEYRING")
+	if err != nil || planetmint == "" || planetmintAddress == "" {
+		panic("Could not read configuration")
+	}
+
+	//check for rpc params
 
 	return
 }
@@ -82,6 +92,26 @@ func postIssue(c *gin.Context) {
 	}
 
 	// TODO: read txResult beneficiary/amount
+	fmt.Println(txResult)
+
+	mintPLMNT("bene", 1000, txhash)
+}
+
+func setupRPCClient(config *viper.Viper) *rpcclient.Client {
+	connCfg := &rpcclient.ConnConfig{
+		Host:         config.GetString("RPC_HOST"),
+		User:         config.GetString("RPC_USER"),
+		Pass:         config.GetString("RPC_PASS"),
+		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
+		DisableTLS:   true, // Bitcoin core does not provide TLS by default
+	}
+
+	client, err := rpcclient.New(connCfg, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return client
 }
 
 func startWebService(config *viper.Viper) {
@@ -95,20 +125,11 @@ func startWebService(config *viper.Viper) {
 
 func main() {
 	config, err := loadConfig("./")
-
-	connCfg := &rpcclient.ConnConfig{
-		Host:         "planetmint-go-testnet-explorer.rddl.io:18884",
-		User:         "",
-		Pass:         "",
-		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
-		DisableTLS:   true, // Bitcoin core does not provide TLS by default
-	}
-
-	client, err := rpcclient.New(connCfg, nil)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
+	client = setupRPCClient(config)
 	defer client.Shutdown()
 
 	// Get the current block count.
@@ -117,4 +138,6 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("Block count: %d", blockCount)
+
+	startWebService(config)
 }
