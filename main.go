@@ -21,6 +21,7 @@ type MintRequest struct {
 	LiquidTXHash string `json:"liquidTXHash"`
 }
 
+// TODO: finalize details to resemble liquid
 type GetTransactionDetailsResult struct {
 	Account           string   `json:"account"`
 	Address           string   `json:"address,omitempty"`
@@ -87,6 +88,7 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 	return
 }
 
+// TODO: how to check response in case of rpc error
 func checkMintRequest(txhash string) (mintRequest MintRequestResponse, err error) {
 	cmdStr := fmt.Sprintf("%s query dao get-mint-requests-by-hash %s -o json", planetmint, txhash)
 
@@ -94,6 +96,7 @@ func checkMintRequest(txhash string) (mintRequest MintRequestResponse, err error
 	out, err := cmd.Output()
 	if err != nil {
 		fmt.Println("could not run command: ", err)
+		return mintRequest, err
 	}
 	fmt.Println("Output: ", string(out))
 
@@ -105,6 +108,7 @@ func checkMintRequest(txhash string) (mintRequest MintRequestResponse, err error
 	return
 }
 
+// TODO: amount should be uint64
 func mintPLMNT(beneficiary string, amount string, liquidTxHash string) {
 	mintRequest := MintRequest{
 		Beneficiary:  beneficiary,
@@ -156,9 +160,10 @@ func postIssue(c *gin.Context) {
 	mr, err := checkMintRequest(txhash)
 	if err != nil {
 		fmt.Println(err)
-		return
+		// no return becouse error also means not found
 	}
 
+	// return tx containing msg if error
 	fmt.Println("MintRequest: ", mr.Request)
 
 	fmt.Println("GET LIQUID HASH")
@@ -168,11 +173,7 @@ func postIssue(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(tx.Amount)
-
-	// TODO: read txResult beneficiary/amount
-	// fmt.Println(txResult)
-	// mintPLMNT("bene", 1000, txhash)
+	mintPLMNT("bene", fmt.Sprintf("%f", tx.Amount["rddl"]*100), txhash)
 }
 
 func setupRPCClient(config *viper.Viper) *rpcclient.Client {
@@ -209,13 +210,6 @@ func main() {
 
 	client = setupRPCClient(config)
 	defer client.Shutdown()
-
-	// Get the current block count.
-	blockCount, err := client.GetBlockCount()
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Block count: %d", blockCount)
 
 	startWebService(config)
 }
