@@ -30,7 +30,6 @@ type MintRequest struct {
 	LiquidTXHash string `json:"liquidTXHash"`
 }
 
-// TODO: finalize details to resemble liquid
 type GetTransactionDetailsResult struct {
 	Account           string   `json:"account"`
 	Address           string   `json:"address,omitempty"`
@@ -132,7 +131,7 @@ func checkMintRequest(txhash string) (mintRequest CheckMintRequestResponse, err 
 	return
 }
 
-func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) {
+func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err error) {
 	mintRequest := MintRequest{
 		Beneficiary:  beneficiary,
 		Amount:       amount,
@@ -141,7 +140,7 @@ func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) {
 
 	mrJSON, err := json.Marshal(mintRequest)
 	if err != nil {
-		return
+		return err
 	}
 
 	cmdStr := fmt.Sprintf("%s tx dao mint-token '%s' --from %s -y", planetmint, string(mrJSON), planetmintAddress)
@@ -152,32 +151,26 @@ func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) {
 
 	cmd := exec.Command("bash", "-c", cmdStr)
 
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
 	err = cmd.Run()
-	fmt.Println("STDOUT: ", stdout.String())
-	fmt.Println("STDERR: ", stderr.String())
 	if err != nil {
 		fmt.Println("could not run command: ", err)
+		return err
 	}
+
+	return
 }
 
 func getLiquidTx(txhash string) (liquidTx GetTransactionResult, err error) {
 	cmdStr := fmt.Sprintf("elements-cli -rpcpassword=%s -rpcuser=%s -rpcport=18884 -rpcconnect=%s gettransaction %s", rpcPass, rpcUser, rpcHost, txhash)
 	cmd := exec.Command("bash", "-c", cmdStr)
 
-	var stdout, stderr bytes.Buffer
+	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
 
 	err = cmd.Run()
-	fmt.Println("STDOUT: ", stdout.String())
-	fmt.Println("STDERR: ", stderr.String())
-
 	if err != nil {
 		fmt.Println("could not run command: ", err)
+		return liquidTx, err
 	}
 
 	err = json.Unmarshal(stdout.Bytes(), &liquidTx)
@@ -200,7 +193,7 @@ func postIssue(c *gin.Context) {
 	// check if mint request is already existant
 	mr, err := checkMintRequest(txhash)
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching mint request: %s", err)})
 		return
 	}
 
@@ -213,12 +206,15 @@ func postIssue(c *gin.Context) {
 	// fetch liquid tx for amount of rddl
 	tx, err := getLiquidTx(txhash)
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching liquid tx: %s", err)})
 		return
 	}
 
 	plmntAmount := getConversion(uint64(tx.Amount[rddl]))
-	mintPLMNT(requestBody.Beneficiary, plmntAmount, txhash)
+	err = mintPLMNT(requestBody.Beneficiary, plmntAmount, txhash)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while minting token: %s", err)})
+	}
 }
 
 func setupRPCClient(config *viper.Viper) *rpcclient.Client {
