@@ -14,13 +14,19 @@ import (
 	"github.com/spf13/viper"
 )
 
-type MintRequestResponse struct {
-	Request MintRequest `json:"mintRequest"`
+type CheckMintRequestResponse struct {
+	Request CheckMintRequest `json:"mintRequest"`
+}
+
+type CheckMintRequest struct {
+	Beneficiary  string `json:"beneficiary"`
+	Amount       string `json:"amount"`
+	LiquidTXHash string `json:"liquidTXHash"`
 }
 
 type MintRequest struct {
 	Beneficiary  string `json:"beneficiary"`
-	Amount       string `json:"amount"`
+	Amount       uint64 `json:"amount"`
 	LiquidTXHash string `json:"liquidTXHash"`
 }
 
@@ -54,6 +60,8 @@ type GetTransactionResult struct {
 type MintRequestBody struct {
 	Beneficiary string `json:"beneficiary"`
 }
+
+const rddl = "rddl"
 
 var (
 	planetmint        string
@@ -95,7 +103,13 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 	return
 }
 
-func checkMintRequest(txhash string) (mintRequest MintRequestResponse, err error) {
+// Constant rate to be replaced with conversion rate monitor
+func getConversion(rddl uint64) (plmnt uint64) {
+	conversionRate := uint64(100)
+	return rddl * conversionRate
+}
+
+func checkMintRequest(txhash string) (mintRequest CheckMintRequestResponse, err error) {
 	cmdStr := fmt.Sprintf("%s query dao get-mint-requests-by-hash %s -o json", planetmint, txhash)
 
 	cmd := exec.Command("bash", "-c", cmdStr)
@@ -118,24 +132,10 @@ func checkMintRequest(txhash string) (mintRequest MintRequestResponse, err error
 	return
 }
 
-// TODO: remove for corrected mint request
-type Foo struct {
-	Beneficiary  string `json:"beneficiary"`
-	Amount       uint64 `json:"amount"`
-	LiquidTXHash string `json:"liquidTXHash"`
-}
-
-// TODO: amount should be uint64
-func mintPLMNT(beneficiary string, amount string, liquidTxHash string) {
-	// mintRequest := MintRequest{
-	// 	Beneficiary:  beneficiary,
-	// 	Amount:       amount,
-	// 	LiquidTXHash: liquidTxHash,
-	// }
-
-	mintRequest := Foo{
+func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) {
+	mintRequest := MintRequest{
 		Beneficiary:  beneficiary,
-		Amount:       1000,
+		Amount:       amount,
 		LiquidTXHash: liquidTxHash,
 	}
 
@@ -149,8 +149,6 @@ func mintPLMNT(beneficiary string, amount string, liquidTxHash string) {
 	if planetmintKeyring != "" {
 		cmdStr = fmt.Sprintf("%s --keyring-backend %s", cmdStr, planetmintKeyring)
 	}
-
-	fmt.Println(cmdStr)
 
 	cmd := exec.Command("bash", "-c", cmdStr)
 
@@ -199,27 +197,28 @@ func postIssue(c *gin.Context) {
 		return
 	}
 
+	// check if mint request is already existant
 	mr, err := checkMintRequest(txhash)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	// return because mint request for txhash is alreay
+	// return because mint request for txhash is already
 	if mr.Request.Beneficiary != "" {
 		c.JSON(http.StatusConflict, gin.H{"msg": "already minted"})
 		return
 	}
 
-	_, err = getLiquidTx(txhash)
+	// fetch liquid tx for amount of rddl
+	tx, err := getLiquidTx(txhash)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	// mintPLMNT(requestBody.Beneficiary, fmt.Sprintf("%f", tx.Amount["rddl"]*100), txhash)
-	// TODO: read beneficiary from requestBody and change amount to uint64
-	mintPLMNT(requestBody.Beneficiary, "1000", txhash)
+	plmntAmount := getConversion(uint64(tx.Amount[rddl]))
+	mintPLMNT(requestBody.Beneficiary, plmntAmount, txhash)
 }
 
 func setupRPCClient(config *viper.Viper) *rpcclient.Client {
