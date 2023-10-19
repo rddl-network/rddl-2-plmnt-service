@@ -60,8 +60,6 @@ type MintRequestBody struct {
 	Beneficiary string `json:"beneficiary"`
 }
 
-const rddl = "rddl"
-
 var (
 	planetmint        string
 	planetmintAddress string
@@ -69,6 +67,7 @@ var (
 	rpcHost           string
 	rpcUser           string
 	rpcPass           string
+	reissuanceAsset   string
 	client            *rpcclient.Client
 )
 
@@ -96,6 +95,11 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 	rpcUser = v.GetString("RPC_USER")
 	rpcPass = v.GetString("RPC_PASS")
 	if rpcHost == "" || rpcUser == "" || rpcPass == "" {
+		panic("Could not read configuration")
+	}
+
+	reissuanceAsset = v.GetString("REISSUANCE_ASSET")
+	if reissuanceAsset == "" {
 		panic("Could not read configuration")
 	}
 
@@ -210,7 +214,13 @@ func postIssue(c *gin.Context) {
 		return
 	}
 
-	plmntAmount := getConversion(uint64(tx.Amount[rddl]))
+	// return error if reissuance asset is not in liquid tx
+	if _, ok := tx.Amount[reissuanceAsset]; !ok {
+		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("tx does not contain reissuance asset: %s", reissuanceAsset)})
+		return
+	}
+
+	plmntAmount := getConversion(uint64(tx.Amount[reissuanceAsset]))
 	err = mintPLMNT(requestBody.Beneficiary, plmntAmount, txhash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while minting token: %s", err)})
