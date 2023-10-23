@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os/exec"
 	"strings"
 
-	"github.com/btcsuite/btcd/rpcclient"
+	elements "github.com/rddl-network/elements-rpc"
+
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
@@ -30,32 +30,6 @@ type MintRequest struct {
 	LiquidTXHash string `json:"liquidTXHash"`
 }
 
-type GetTransactionDetailsResult struct {
-	Account           string   `json:"account"`
-	Address           string   `json:"address,omitempty"`
-	Amount            float64  `json:"amount"`
-	Category          string   `json:"category"`
-	InvolvesWatchOnly bool     `json:"involveswatchonly,omitempty"`
-	Fee               *float64 `json:"fee,omitempty"`
-	Vout              uint32   `json:"vout"`
-}
-
-// GetTransactionResult models the data from the gettransaction command.
-type GetTransactionResult struct {
-	Amount          map[string]float64            `json:"amount"`
-	Fee             float64                       `json:"fee,omitempty"`
-	Confirmations   int64                         `json:"confirmations"`
-	BlockHash       string                        `json:"blockhash"`
-	BlockIndex      int64                         `json:"blockindex"`
-	BlockTime       int64                         `json:"blocktime"`
-	TxID            string                        `json:"txid"`
-	WalletConflicts []string                      `json:"walletconflicts"`
-	Time            int64                         `json:"time"`
-	TimeReceived    int64                         `json:"timereceived"`
-	Details         []GetTransactionDetailsResult `json:"details"`
-	Hex             string                        `json:"hex"`
-}
-
 type MintRequestBody struct {
 	Beneficiary string `json:"beneficiary"`
 }
@@ -68,7 +42,6 @@ var (
 	rpcUser           string
 	rpcPass           string
 	reissuanceAsset   string
-	client            *rpcclient.Client
 )
 
 func loadConfig(path string) (v *viper.Viper, err error) {
@@ -164,27 +137,6 @@ func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err erro
 	return
 }
 
-func getLiquidTx(txhash string) (liquidTx GetTransactionResult, err error) {
-	cmdStr := fmt.Sprintf("elements-cli -rpcpassword=%s -rpcuser=%s -rpcport=18884 -rpcconnect=%s gettransaction %s", rpcPass, rpcUser, rpcHost, txhash)
-	cmd := exec.Command("bash", "-c", cmdStr)
-
-	var stdout bytes.Buffer
-	cmd.Stdout = &stdout
-
-	err = cmd.Run()
-	if err != nil {
-		fmt.Println("could not run command: ", err)
-		return liquidTx, err
-	}
-
-	err = json.Unmarshal(stdout.Bytes(), &liquidTx)
-	if err != nil {
-		return liquidTx, err
-	}
-
-	return
-}
-
 func postIssue(c *gin.Context) {
 	txhash := c.Param("txhash")
 
@@ -208,7 +160,8 @@ func postIssue(c *gin.Context) {
 	}
 
 	// fetch liquid tx for amount of rddl
-	tx, err := getLiquidTx(txhash)
+	url := fmt.Sprintf("http://%s:%s@%s", rpcUser, rpcPass, rpcHost)
+	tx, err := elements.GetWalletTx(url, txhash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching liquid tx: %s", err)})
 		return
@@ -227,23 +180,6 @@ func postIssue(c *gin.Context) {
 	}
 }
 
-func setupRPCClient(config *viper.Viper) *rpcclient.Client {
-	connCfg := &rpcclient.ConnConfig{
-		Host:         config.GetString("RPC_HOST"),
-		User:         config.GetString("RPC_USER"),
-		Pass:         config.GetString("RPC_PASS"),
-		HTTPPostMode: true, // Bitcoin core only supports HTTP POST mode
-		DisableTLS:   true, // Bitcoin core does not provide TLS by default
-	}
-
-	client, err := rpcclient.New(connCfg, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return client
-}
-
 func startWebService(config *viper.Viper) {
 	router := gin.Default()
 	router.POST("/mint/:txhash", postIssue)
@@ -258,9 +194,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	client = setupRPCClient(config)
-	defer client.Shutdown()
 
 	startWebService(config)
 }
