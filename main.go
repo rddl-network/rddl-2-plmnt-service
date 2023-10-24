@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"os/exec"
+	"strings"
+
+	"google.golang.org/grpc/codes"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	elements "github.com/rddl-network/elements-rpc"
@@ -94,6 +97,11 @@ func checkMintRequest(txhash string) (mintRequest *daotypes.QueryGetMintRequests
 		context.Background(),
 		&daotypes.QueryGetMintRequestsByHashRequest{Hash: txhash},
 	)
+
+	if strings.Contains(err.Error(), codes.NotFound.String()) {
+		return mintRequest, nil
+	}
+
 	if err != nil {
 		return mintRequest, err
 	}
@@ -147,7 +155,7 @@ func postIssue(c *gin.Context) {
 	}
 
 	// return because mint request for txhash is already
-	if mr.MintRequest.Beneficiary != "" {
+	if mr != nil {
 		c.JSON(http.StatusConflict, gin.H{"msg": "already minted"})
 		return
 	}
