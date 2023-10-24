@@ -1,28 +1,21 @@
 package main
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os/exec"
-	"strings"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	elements "github.com/rddl-network/elements-rpc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
+
+	daotypes "github.com/planetmint/planetmint-go/x/dao/types"
 )
-
-type CheckMintRequestResponse struct {
-	Request CheckMintRequest `json:"mintRequest"`
-}
-
-type CheckMintRequest struct {
-	Beneficiary  string `json:"beneficiary"`
-	Amount       string `json:"amount"`
-	LiquidTXHash string `json:"liquidTXHash"`
-}
 
 type MintRequest struct {
 	Beneficiary  string `json:"beneficiary"`
@@ -85,22 +78,22 @@ func getConversion(rddl uint64) (plmnt uint64) {
 	return rddl * conversionRate
 }
 
-func checkMintRequest(txhash string) (mintRequest CheckMintRequestResponse, err error) {
-	cmdStr := fmt.Sprintf("%s query dao get-mint-requests-by-hash %s -o json", planetmint, txhash)
-
-	cmd := exec.Command("bash", "-c", cmdStr)
-
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	cmd.Run()
-	errStr := stderr.String()
-	if strings.Contains(errStr, "mint request not found") {
+func checkMintRequest(txhash string) (mintRequest *daotypes.QueryGetMintRequestsByHashResponse, err error) {
+	// TODO: replace with config host:port and non deprecated code
+	grcpConn, err := grpc.Dial(
+		"127.0.0.1:9090",
+		grpc.WithInsecure(),
+		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
+	)
+	if err != nil {
 		return mintRequest, err
 	}
 
-	err = json.Unmarshal(stdout.Bytes(), &mintRequest)
+	daoClient := daotypes.NewQueryClient(grcpConn)
+	mintRequest, err = daoClient.GetMintRequestsByHash(
+		context.Background(),
+		&daotypes.QueryGetMintRequestsByHashRequest{Hash: txhash},
+	)
 	if err != nil {
 		return mintRequest, err
 	}
@@ -154,7 +147,7 @@ func postIssue(c *gin.Context) {
 	}
 
 	// return because mint request for txhash is already
-	if mr.Request.Beneficiary != "" {
+	if mr.MintRequest.Beneficiary != "" {
 		c.JSON(http.StatusConflict, gin.H{"msg": "already minted"})
 		return
 	}
