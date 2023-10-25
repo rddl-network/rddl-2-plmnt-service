@@ -94,7 +94,11 @@ func checkMintRequest(txhash string) (mintRequest CheckMintRequestResponse, err 
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	cmd.Run()
+	err = cmd.Run()
+	if err != nil {
+		return mintRequest, err
+	}
+
 	errStr := stderr.String()
 	if strings.Contains(errStr, "mint request not found") {
 		return mintRequest, err
@@ -186,7 +190,7 @@ func startWebService(config *viper.Viper) {
 
 	bindAddress := config.GetString("SERVICE_BIND")
 	servicePort := config.GetString("SERVICE_PORT")
-	router.Run(fmt.Sprintf("%s:%s", bindAddress, servicePort))
+	_ = router.Run(fmt.Sprintf("%s:%s", bindAddress, servicePort))
 }
 
 func main() {
