@@ -21,12 +21,7 @@ import (
 	daotypes "github.com/planetmint/planetmint-go/x/dao/types"
 )
 
-type MintRequest struct {
-	Beneficiary  string `json:"beneficiary"`
-	Amount       uint64 `json:"amount"`
-	LiquidTXHash string `json:"liquidTXHash"`
-}
-
+// Request body for REST Endpoint
 type MintRequestBody struct {
 	Beneficiary string `json:"beneficiary"`
 }
@@ -110,10 +105,10 @@ func checkMintRequest(txhash string) (mintRequest *daotypes.QueryGetMintRequests
 }
 
 func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err error) {
-	mintRequest := MintRequest{
+	mintRequest := daotypes.MintRequest{
 		Beneficiary:  beneficiary,
 		Amount:       amount,
-		LiquidTXHash: liquidTxHash,
+		LiquidTxHash: liquidTxHash,
 	}
 
 	mrJSON, err := json.Marshal(mintRequest)
