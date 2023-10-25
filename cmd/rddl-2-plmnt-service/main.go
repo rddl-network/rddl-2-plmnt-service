@@ -158,12 +158,19 @@ func postIssue(c *gin.Context) {
 	}
 
 	// return error if reissuance asset is not in liquid tx
-	if _, ok := tx.Amount[reissuanceAsset]; !ok {
+	amt, ok := tx.Amount[reissuanceAsset]
+	if !ok {
 		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("tx does not contain reissuance asset: %s", reissuanceAsset)})
 		return
 	}
 
-	plmntAmount := getConversion(uint64(tx.Amount[reissuanceAsset]))
+	// check if amount is positive otherwise return error
+	if amt <= 0 {
+		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("reissaunce asset amount must be positive got: %v", amt)})
+		return
+	}
+
+	plmntAmount := getConversion(uint64(amt))
 	err = mintPLMNT(requestBody.Beneficiary, plmntAmount, txhash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while minting token: %s", err)})
