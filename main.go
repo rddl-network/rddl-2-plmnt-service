@@ -181,7 +181,7 @@ func startWebService(config *viper.Viper) {
 
 	bindAddress := config.GetString("SERVICE_BIND")
 	servicePort := config.GetString("SERVICE_PORT")
-	router.Run(fmt.Sprintf("%s:%s", bindAddress, servicePort))
+	_ = router.Run(fmt.Sprintf("%s:%s", bindAddress, servicePort))
 }
 
 func main() {
