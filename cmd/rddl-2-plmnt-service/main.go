@@ -1,35 +1,27 @@
 package main
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os/exec"
 	"strings"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 	elements "github.com/rddl-network/elements-rpc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
+
+	daotypes "github.com/planetmint/planetmint-go/x/dao/types"
 )
 
-type CheckMintRequestResponse struct {
-	Request CheckMintRequest `json:"mintRequest"`
-}
-
-type CheckMintRequest struct {
-	Beneficiary  string `json:"beneficiary"`
-	Amount       string `json:"amount"`
-	LiquidTXHash string `json:"liquidTXHash"`
-}
-
-type MintRequest struct {
-	Beneficiary  string `json:"beneficiary"`
-	Amount       uint64 `json:"amount"`
-	LiquidTXHash string `json:"liquidTXHash"`
-}
-
+// Request body for REST Endpoint
 type MintRequestBody struct {
 	Beneficiary string `json:"beneficiary"`
 }
@@ -37,10 +29,10 @@ type MintRequestBody struct {
 var (
 	planetmint        string
 	planetmintAddress string
-	planetmintKeyring string
 	rpcHost           string
 	rpcUser           string
 	rpcPass           string
+	pmRPCHost         string
 	reissuanceAsset   string
 )
 
@@ -59,7 +51,6 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 
 	planetmint = v.GetString("PLANETMINT_GO")
 	planetmintAddress = v.GetString("PLANETMINT_ADDRESS")
-	planetmintKeyring = v.GetString("PLANETMINT_KEYRING")
 	if err != nil || planetmint == "" || planetmintAddress == "" {
 		panic("Could not read configuration")
 	}
@@ -67,7 +58,8 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 	rpcHost = v.GetString("RPC_HOST")
 	rpcUser = v.GetString("RPC_USER")
 	rpcPass = v.GetString("RPC_PASS")
-	if rpcHost == "" || rpcUser == "" || rpcPass == "" {
+	pmRPCHost = v.GetString("PM_RPC_HOST")
+	if rpcHost == "" || rpcUser == "" || rpcPass == "" || pmRPCHost == "" {
 		panic("Could not read configuration")
 	}
 
@@ -85,26 +77,26 @@ func getConversion(rddl uint64) (plmnt uint64) {
 	return rddl * conversionRate
 }
 
-func checkMintRequest(txhash string) (mintRequest CheckMintRequestResponse, err error) {
-	cmdStr := fmt.Sprintf("%s query dao get-mint-requests-by-hash %s -o json", planetmint, txhash)
-
-	cmd := exec.Command("bash", "-c", cmdStr)
-
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	err = cmd.Run()
+func checkMintRequest(txhash string) (mintRequest *daotypes.QueryGetMintRequestsByHashResponse, err error) {
+	grcpConn, err := grpc.Dial(
+		pmRPCHost,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
+	)
 	if err != nil {
 		return mintRequest, err
 	}
 
-	errStr := stderr.String()
-	if strings.Contains(errStr, "mint request not found") {
-		return mintRequest, err
+	daoClient := daotypes.NewQueryClient(grcpConn)
+	mintRequest, err = daoClient.GetMintRequestsByHash(
+		context.Background(),
+		&daotypes.QueryGetMintRequestsByHashRequest{Hash: txhash},
+	)
+
+	if strings.Contains(err.Error(), codes.NotFound.String()) {
+		return mintRequest, nil
 	}
 
-	err = json.Unmarshal(stdout.Bytes(), &mintRequest)
 	if err != nil {
 		return mintRequest, err
 	}
@@ -113,10 +105,10 @@ func checkMintRequest(txhash string) (mintRequest CheckMintRequestResponse, err 
 }
 
 func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err error) {
-	mintRequest := MintRequest{
+	mintRequest := daotypes.MintRequest{
 		Beneficiary:  beneficiary,
 		Amount:       amount,
-		LiquidTXHash: liquidTxHash,
+		LiquidTxHash: liquidTxHash,
 	}
 
 	mrJSON, err := json.Marshal(mintRequest)
@@ -124,13 +116,7 @@ func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err erro
 		return err
 	}
 
-	cmdStr := fmt.Sprintf("%s tx dao mint-token '%s' --from %s -y", planetmint, string(mrJSON), planetmintAddress)
-
-	if planetmintKeyring != "" {
-		cmdStr = fmt.Sprintf("%s --keyring-backend %s", cmdStr, planetmintKeyring)
-	}
-
-	cmd := exec.Command("bash", "-c", cmdStr)
+	cmd := exec.Command(planetmint, "tx", "dao", "mint-token", string(mrJSON), "--from", planetmintAddress)
 
 	err = cmd.Run()
 	if err != nil {
@@ -158,7 +144,7 @@ func postIssue(c *gin.Context) {
 	}
 
 	// return because mint request for txhash is already
-	if mr.Request.Beneficiary != "" {
+	if mr != nil {
 		c.JSON(http.StatusConflict, gin.H{"msg": "already minted"})
 		return
 	}

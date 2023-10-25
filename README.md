@@ -9,7 +9,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"beneficiary": "plmnt15xuq
 ## Execution
 The service can be executed via the following go command without having it previously built:
 ```
-go run main.go
+go run cmd/rddl-2-plmnt-service/main.go
 ```
 
 ## Configuration
