@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	elements "github.com/rddl-network/elements-rpc"
@@ -33,10 +34,10 @@ type MintRequestBody struct {
 var (
 	planetmint        string
 	planetmintAddress string
-	planetmintKeyring string
 	rpcHost           string
 	rpcUser           string
 	rpcPass           string
+	pmRPCHost         string
 	reissuanceAsset   string
 )
 
@@ -55,7 +56,6 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 
 	planetmint = v.GetString("PLANETMINT_GO")
 	planetmintAddress = v.GetString("PLANETMINT_ADDRESS")
-	planetmintKeyring = v.GetString("PLANETMINT_KEYRING")
 	if err != nil || planetmint == "" || planetmintAddress == "" {
 		panic("Could not read configuration")
 	}
@@ -63,7 +63,8 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 	rpcHost = v.GetString("RPC_HOST")
 	rpcUser = v.GetString("RPC_USER")
 	rpcPass = v.GetString("RPC_PASS")
-	if rpcHost == "" || rpcUser == "" || rpcPass == "" {
+	pmRPCHost = v.GetString("PM_RPC_HOST")
+	if rpcHost == "" || rpcUser == "" || rpcPass == "" || pmRPCHost == "" {
 		panic("Could not read configuration")
 	}
 
@@ -82,10 +83,9 @@ func getConversion(rddl uint64) (plmnt uint64) {
 }
 
 func checkMintRequest(txhash string) (mintRequest *daotypes.QueryGetMintRequestsByHashResponse, err error) {
-	// TODO: replace with config host:port and non deprecated code
 	grcpConn, err := grpc.Dial(
-		"127.0.0.1:9090",
-		grpc.WithInsecure(),
+		pmRPCHost,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
 	)
 	if err != nil {
@@ -121,13 +121,7 @@ func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err erro
 		return err
 	}
 
-	cmdStr := fmt.Sprintf("%s tx dao mint-token '%s' --from %s -y", planetmint, string(mrJSON), planetmintAddress)
-
-	if planetmintKeyring != "" {
-		cmdStr = fmt.Sprintf("%s --keyring-backend %s", cmdStr, planetmintKeyring)
-	}
-
-	cmd := exec.Command("bash", "-c", cmdStr)
+	cmd := exec.Command(planetmint, "tx", "dao", "mint-token", string(mrJSON), "--from", planetmintAddress)
 
 	err = cmd.Run()
 	if err != nil {
