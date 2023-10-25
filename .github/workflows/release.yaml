@@ -16,38 +16,15 @@ on:
           - true
           - false
         default: true
+      files:
+        description: "Files"
+        required: true
+        default: "rddl-2-plmnt-service"
 
 jobs:
   release:
-    runs-on: ubuntu-latest
-    env:
-      PRERELEASE: ${{ github.event.inputs.prerelease }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Tag
-        run: |
-          if ! [[ ${{ github.event.inputs.tag }} =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Tag needs to be vX.Y.Z, e.g. v1.2.3"
-            exit 1
-          fi
-          git tag ${{ github.event.inputs.tag }}
-          git push origin ${{ github.event.inputs.tag }}
-
-      - name: Setup Go
-        uses: actions/setup-go@v4
-
-      - name: Build
-        run: |
-          go build -v ./...
-
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          prerelease: ${{ fromJSON(env.PRERELEASE) }}
-          files: rddl-2-plmnt-service
-          name: ${{ github.event.inputs.tag }}
-          tag_name: ${{ github.event.inputs.tag }}
-          fail_on_unmatched_files: true
-          generate_release_notes: true
+    uses: rddl-network/github-actions/.github/workflows/release.yaml@main
+    with:
+      tag: ${{ github.event.inputs.tag }}
+      prerelease: ${{ fromJSON(github.event.inputs.prerelease) }}
+      files: ${{ github.event.inputs.files }}
