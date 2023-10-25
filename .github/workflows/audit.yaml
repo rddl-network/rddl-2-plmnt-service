@@ -1,0 +1,8 @@
+---
+name: Audit
+
+on: [push]
+
+jobs:
+  audit:
+    uses: rddl-network/github-actions/.github/workflows/audit.yaml@main
