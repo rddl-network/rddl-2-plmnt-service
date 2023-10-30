@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
+	"text/template"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,6 +23,7 @@ import (
 	"google.golang.org/grpc"
 
 	daotypes "github.com/planetmint/planetmint-go/x/dao/types"
+	"github.com/rddl-network/rddl-2-plmnt-service/config"
 )
 
 // Request body for REST Endpoint
@@ -40,34 +45,39 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 	v = viper.New()
 	v.AddConfigPath(path)
 	v.SetConfigName("app")
-	v.SetConfigType("env")
+	v.SetConfigType("toml")
 
 	v.AutomaticEnv()
 
 	err = v.ReadInConfig()
+	if err == nil {
+		return
+	}
+	log.Println("no config file found.")
+
+	tmpl := template.New("appConfigFileTemplate")
+	configTemplate, err := tmpl.Parse(config.DefaultConfigTemplate)
 	if err != nil {
 		return
 	}
 
-	planetmint = v.GetString("PLANETMINT_GO")
-	planetmintAddress = v.GetString("PLANETMINT_ADDRESS")
-	if err != nil || planetmint == "" || planetmintAddress == "" {
-		panic("Could not read configuration")
+	var buffer bytes.Buffer
+	err = configTemplate.Execute(&buffer, config.GetConfig())
+	if err != nil {
+		return
 	}
 
-	rpcHost = v.GetString("RPC_HOST")
-	rpcUser = v.GetString("RPC_USER")
-	rpcPass = v.GetString("RPC_PASS")
-	pmRPCHost = v.GetString("PM_RPC_HOST")
-	if rpcHost == "" || rpcUser == "" || rpcPass == "" || pmRPCHost == "" {
-		panic("Could not read configuration")
+	err = v.ReadConfig(&buffer)
+	if err != nil {
+		return
+	}
+	err = v.SafeWriteConfig()
+	if err != nil {
+		return
 	}
 
-	reissuanceAsset = v.GetString("REISSUANCE_ASSET")
-	if reissuanceAsset == "" {
-		panic("Could not read configuration")
-	}
-
+	log.Println("default config file created. please adapt it and restart the application. exiting...")
+	os.Exit(0)
 	return
 }
 
@@ -181,15 +191,34 @@ func startWebService(config *viper.Viper) {
 	router := gin.Default()
 	router.POST("/mint/:txhash", postIssue)
 
-	bindAddress := config.GetString("SERVICE_BIND")
-	servicePort := config.GetString("SERVICE_PORT")
+	bindAddress := config.GetString("service-bind")
+	servicePort := config.GetString("service-port")
 	_ = router.Run(fmt.Sprintf("%s:%s", bindAddress, servicePort))
 }
 
 func main() {
 	config, err := loadConfig("./")
 	if err != nil {
-		panic(err)
+		log.Fatalf("fatal error loading config file: %s", err)
+	}
+
+	planetmint = config.GetString("planetmint")
+	planetmintAddress = config.GetString("planetmint-address")
+	if err != nil || planetmint == "" || planetmintAddress == "" {
+		panic("Could not read configuration")
+	}
+
+	rpcHost = config.GetString("rpc-host")
+	rpcUser = config.GetString("rpc-user")
+	rpcPass = config.GetString("rpc-pass")
+	pmRPCHost = config.GetString("planetmint-rpc-host")
+	if rpcHost == "" || rpcUser == "" || rpcPass == "" || pmRPCHost == "" {
+		panic("Could not read configuration")
+	}
+
+	reissuanceAsset = config.GetString("reissuance-asset")
+	if reissuanceAsset == "" {
+		panic("Could not read configuration")
 	}
 
 	startWebService(config)
