@@ -57,7 +57,7 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 
 	tmpl := template.New("appConfigFileTemplate")
 	configTemplate, err := tmpl.Parse(config.DefaultConfigTemplate)
-	if err == nil {
+	if err != nil {
 		return
 	}
 
