@@ -197,7 +197,7 @@ func startWebService(config *viper.Viper) {
 }
 
 func main() {
-	config, err := loadConfig("../../")
+	config, err := loadConfig("./")
 	if err != nil {
 		log.Fatalf("fatal error loading config file: %s", err)
 	}
