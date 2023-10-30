@@ -3,15 +3,15 @@ package config
 import "sync"
 
 const DefaultConfigTemplate = `
-PLANETMINT_GO={{ .Planetmint }}
-PLANETMINT_ADDRESS={{ .PlanetmintAddress }}
-RPC_HOST={{ .RPCHost }}
-RPC_USER={{ .RPCUser }}
-RPC_PASS={{ .RPCPass }}
-PM_RPC_HOST={{ .PlanetmintRPCHost }}
-SERVICE_BIND={{ .ServiceBind }}
-SERVICE_PORT={{ .ServicePort }}
-REISSUANCE_ASSET={{ .ReissuanceAsset }}
+planetmint={{ .Planetmint }}
+planetmint-address={{ .PlanetmintAddress }}
+rpc-host={{ .RPCHost }}
+rpc-user={{ .RPCUser }}
+rpc-pass={{ .RPCPass }}
+planetmint-rpc-host={{ .PlanetmintRPCHost }}
+service-bind={{ .ServiceBind }}
+service-port={{ .ServicePort }}
+reissuance-asset={{ .ReissuanceAsset }}
 `
 
 type Config struct {

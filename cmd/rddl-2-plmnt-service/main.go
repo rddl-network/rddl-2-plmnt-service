@@ -211,7 +211,7 @@ func main() {
 	rpcHost = config.GetString("rpc-host")
 	rpcUser = config.GetString("rpc-user")
 	rpcPass = config.GetString("rpc-pass")
-	pmRPCHost = config.GetString("planetmint-rpc")
+	pmRPCHost = config.GetString("planetmint-rpc-host")
 	if rpcHost == "" || rpcUser == "" || rpcPass == "" || pmRPCHost == "" {
 		panic("Could not read configuration")
 	}

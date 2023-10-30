@@ -13,17 +13,18 @@ go run cmd/rddl-2-plmnt-service/main.go
 ```
 
 ## Configuration
-The service needs to be configured via the ```./app.env``` file or environment variables. The defaults are
+The service needs to be configured via the ```./app.toml``` file or environment variables. The defaults are
 ```
-PLANETMINT_GO=planetmint-god
-PLANETMINT_ADDRESS=plmnt15xuq0yfxtd70l7jzr5hg722sxzcqqdcr8ptpl5
-PLANETMINT_KEYRING= # optional
-RPC_HOST=testnet-explorer.rddl.io:18884
-RPC_USER=
-RPC_PASS=
-SERVICE_PORT=8080
-SERVICE_BIND=localhost
+planetmint = "planetmint-god"
+planetmint-address = "plmnt15xuq0yfxtd70l7jzr5hg722sxzcqqdcr8ptpl5"
+rpc-host = "planetmint-go-testnet-3.rddl.io:18884"
+rpc-user = "user"
+rpc-pass = "password"
+planetmint-rpc-host = "127.0.0.1:9090"
+service-port = 8080
+service-host = "localhost"
+reissuance-asset = "7add40beb27df701e02ee85089c5bc0021bc813823fedb5f1dcb5debda7f3da9"
 ```
-A sample ```./app.env``` file is at ```./app.env.template```
+The defaults can be found at ```./config/config.go```.
 
-**Important:** The `PLANETMINT_ADDRESS` needs to be the `MintAddress` configured on Planetmint in order to pass the `AnteHandler` check.
+**Important:** The `planetmint-address` needs to be the `MintAddress` configured on Planetmint in order to pass the `AnteHandler` check.
