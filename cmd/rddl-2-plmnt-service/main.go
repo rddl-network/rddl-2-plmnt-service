@@ -177,7 +177,7 @@ func postMintRequest(c *gin.Context) {
 
 	// check if amount is positive otherwise return error
 	if amt <= 0 {
-		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("reissaunce asset amount must be positive got: %v", amt)})
+		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("accepted asset amount must be positive got: %v", amt)})
 		return
 	}
 
