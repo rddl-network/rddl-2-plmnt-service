@@ -127,7 +127,7 @@ func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err erro
 		return err
 	}
 
-	cmd := exec.Command(planetmint, "tx", "dao", "mint-token", string(mrJSON), "--from", planetmintAddress)
+	cmd := exec.Command(planetmint, "tx", "dao", "mint-token", string(mrJSON), "--from", planetmintAddress, "--fees", "1plmnt", "--yes")
 
 	err = cmd.Run()
 	if err != nil {
