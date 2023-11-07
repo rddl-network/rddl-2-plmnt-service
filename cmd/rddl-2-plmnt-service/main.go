@@ -39,6 +39,7 @@ var (
 	rpcPass           string
 	pmRPCHost         string
 	acceptedAsset     string
+	wallet            string
 )
 
 func loadConfig(path string) (v *viper.Viper, err error) {
@@ -160,7 +161,7 @@ func postMintRequest(c *gin.Context) {
 	}
 
 	// fetch liquid tx for amount of rddl
-	url := fmt.Sprintf("http://%s:%s@%s", rpcUser, rpcPass, rpcHost)
+	url := fmt.Sprintf("http://%s:%s@%s/wallet/%s", rpcUser, rpcPass, rpcHost, wallet)
 	tx, err := elements.GetWalletTx(url, txhash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching liquid tx: %s", err)})
@@ -176,7 +177,7 @@ func postMintRequest(c *gin.Context) {
 
 	// check if amount is positive otherwise return error
 	if amt <= 0 {
-		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("reissaunce asset amount must be positive got: %v", amt)})
+		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("accepted asset amount must be positive got: %v", amt)})
 		return
 	}
 
@@ -217,7 +218,8 @@ func main() {
 	}
 
 	acceptedAsset = config.GetString("accepted-asset")
-	if acceptedAsset == "" {
+	wallet = config.GetString("wallet")
+	if acceptedAsset == "" || wallet == "" {
 		panic("Could not read configuration")
 	}
 

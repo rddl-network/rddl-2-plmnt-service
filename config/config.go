@@ -12,6 +12,7 @@ planetmint-rpc-host="{{ .PlanetmintRPCHost }}"
 service-bind="{{ .ServiceBind }}"
 service-port={{ .ServicePort }}
 accepted-asset="{{ .AcceptedAsset }}"
+wallet="{{ .Wallet }}"
 `
 
 type Config struct {
@@ -24,6 +25,7 @@ type Config struct {
 	ServicePort       int    `mapstructure:"service-port"`
 	ServiceBind       string `mapstructure:"service-bind"`
 	AcceptedAsset     string `mapstructure:"accepted-asset"`
+	Wallet            string `mapstructure:"wallet"`
 }
 
 // global singleton
@@ -44,6 +46,7 @@ func DefaultConfig() *Config {
 		ServicePort:       8080,
 		ServiceBind:       "localhost",
 		AcceptedAsset:     "7add40beb27df701e02ee85089c5bc0021bc813823fedb5f1dcb5debda7f3da9",
+		Wallet:            "rddl2plmnt",
 	}
 }
 
