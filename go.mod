@@ -8,7 +8,7 @@ require (
 	github.com/planetmint/planetmint-go v0.5.4
 	github.com/rddl-network/elements-rpc v0.0.2
 	github.com/spf13/viper v1.16.0
-	google.golang.org/grpc v1.56.2
+	google.golang.org/grpc v1.56.3
 )
 
 require (
