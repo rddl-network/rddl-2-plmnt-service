@@ -38,7 +38,7 @@ var (
 	rpcUser           string
 	rpcPass           string
 	pmRPCHost         string
-	reissuanceAsset   string
+	acceptedAsset     string
 )
 
 func loadConfig(path string) (v *viper.Viper, err error) {
@@ -137,7 +137,7 @@ func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err erro
 	return
 }
 
-func postIssue(c *gin.Context) {
+func postMintRequest(c *gin.Context) {
 	txhash := c.Param("txhash")
 
 	// if beneficiary address missing return bad request
@@ -168,9 +168,9 @@ func postIssue(c *gin.Context) {
 	}
 
 	// return error if reissuance asset is not in liquid tx
-	amt, ok := tx.Amount[reissuanceAsset]
+	amt, ok := tx.Amount[acceptedAsset]
 	if !ok {
-		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("tx does not contain reissuance asset: %s", reissuanceAsset)})
+		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("tx does not contain accepted asset: %s", acceptedAsset)})
 		return
 	}
 
@@ -189,7 +189,7 @@ func postIssue(c *gin.Context) {
 
 func startWebService(config *viper.Viper) {
 	router := gin.Default()
-	router.POST("/mint/:txhash", postIssue)
+	router.POST("/mint/:txhash", postMintRequest)
 
 	bindAddress := config.GetString("service-bind")
 	servicePort := config.GetString("service-port")
@@ -216,8 +216,8 @@ func main() {
 		panic("Could not read configuration")
 	}
 
-	reissuanceAsset = config.GetString("reissuance-asset")
-	if reissuanceAsset == "" {
+	acceptedAsset = config.GetString("accepted-asset")
+	if acceptedAsset == "" {
 		panic("Could not read configuration")
 	}
 
