@@ -11,7 +11,7 @@ rpc-pass="{{ .RPCPass }}"
 planetmint-rpc-host="{{ .PlanetmintRPCHost }}"
 service-bind="{{ .ServiceBind }}"
 service-port={{ .ServicePort }}
-reissuance-asset="{{ .ReissuanceAsset }}"
+accepted-asset="{{ .AcceptedAsset }}"
 `
 
 type Config struct {
@@ -23,7 +23,7 @@ type Config struct {
 	PlanetmintRPCHost string `mapstructure:"planetmint-rpc-host"`
 	ServicePort       int    `mapstructure:"service-port"`
 	ServiceBind       string `mapstructure:"service-bind"`
-	ReissuanceAsset   string `mapstructure:"reissuance-asset"`
+	AcceptedAsset     string `mapstructure:"accepted-asset"`
 }
 
 // global singleton
@@ -43,7 +43,7 @@ func DefaultConfig() *Config {
 		PlanetmintRPCHost: "127.0.0.1:9090",
 		ServicePort:       8080,
 		ServiceBind:       "localhost",
-		ReissuanceAsset:   "7add40beb27df701e02ee85089c5bc0021bc813823fedb5f1dcb5debda7f3da9",
+		AcceptedAsset:     "7add40beb27df701e02ee85089c5bc0021bc813823fedb5f1dcb5debda7f3da9",
 	}
 }
 
