@@ -147,7 +147,7 @@ func postMintRequest(c *gin.Context) {
 		return
 	}
 
-	// check if mint request is already existant
+	// check if mint request is already existenting
 	mr, err := checkMintRequest(txhash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching mint request: %s", err)})
