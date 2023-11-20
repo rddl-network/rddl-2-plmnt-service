@@ -1,10 +1,88 @@
 ---
+run:
+  timeout: 5m
 linters:
   enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - containedctx
+    - contextcheck
+    - decorder
+    - dogsled
+    - dupl
+    - dupword
+    - durationcheck
     - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - execinquery
+    - exhaustive
+    - exportloopref
+    - forcetypeassert
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    - gochecksumtype
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goheader
+    - gomodguard
+    - goprintffuncname
     - gosimple
+    - gosmopolitan
     - govet
+    - grouper
+    - importas
     - ineffassign
+    - interfacebloat
+    - loggercheck
+    - makezero
+    - mirror
+    - misspell
+    - musttag
+    - nakedret
+    - nestif
+    - nilnil
+    - noctx
+    - nolintlint
+    - nosprintfhostport
+    - paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
     - revive
+    - rowserrcheck
+    - sloglint
+    - sqlclosecheck
     - staticcheck
+    - stylecheck
+    - tagalign
+    - tagliatelle
+    - tenv
+    - testableexamples
+    - tparallel
+    - unconvert
+    - unparam
     - unused
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+    - zerologlint
+linters-settings:
+  nakedret:
+    max-func-lines: 100
+  tagalign:
+    strict: true
+  tagliatelle:
+    case:
+      use-field-name: true
+      rules:
+        json: kebab

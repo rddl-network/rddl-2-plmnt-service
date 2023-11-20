@@ -3,25 +3,23 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 	"text/template"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	elements "github.com/rddl-network/elements-rpc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/planetmint/planetmint-go/app"
+	"github.com/planetmint/planetmint-go/lib"
 	daotypes "github.com/planetmint/planetmint-go/x/dao/types"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
 )
@@ -89,11 +87,7 @@ func getConversion(rddl uint64) (plmnt uint64) {
 }
 
 func checkMintRequest(txhash string) (mintRequest *daotypes.QueryGetMintRequestsByHashResponse, err error) {
-	grcpConn, err := grpc.Dial(
-		pmRPCHost,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
-	)
+	grcpConn, err := libConfig.GetGRPCConn()
 	if err != nil {
 		return mintRequest, err
 	}
@@ -122,17 +116,18 @@ func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err erro
 		LiquidTxHash: liquidTxHash,
 	}
 
-	mrJSON, err := json.Marshal(mintRequest)
+	addr := sdk.MustAccAddressFromBech32(planetmintAddress)
+	msg := daotypes.NewMsgMintToken(planetmintAddress, &mintRequest)
+
+	ctx := context.Background()
+	txBytes, _, err := lib.BuildAndSignTx(ctx, addr, msg)
 	if err != nil {
-		return err
+		return
 	}
 
-	cmd := exec.Command(planetmint, "tx", "dao", "mint-token", string(mrJSON), "--from", planetmintAddress, "--fees", "1plmnt", "--yes")
-
-	err = cmd.Run()
+	_, err = lib.BroadcastTx(ctx, txBytes)
 	if err != nil {
-		fmt.Println("could not run command: ", err)
-		return err
+		return
 	}
 
 	return
@@ -147,7 +142,7 @@ func postMintRequest(c *gin.Context) {
 		return
 	}
 
-	// check if mint request is already existant
+	// check whether mint request already exists
 	mr, err := checkMintRequest(txhash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching mint request: %s", err)})
@@ -197,6 +192,8 @@ func startWebService(config *viper.Viper) {
 	_ = router.Run(fmt.Sprintf("%s:%s", bindAddress, servicePort))
 }
 
+var libConfig *lib.Config
+
 func main() {
 	config, err := loadConfig("./")
 	if err != nil {
@@ -216,6 +213,12 @@ func main() {
 	if rpcHost == "" || rpcUser == "" || rpcPass == "" || pmRPCHost == "" {
 		panic("Could not read configuration")
 	}
+
+	encodingConfig := app.MakeEncodingConfig()
+
+	libConfig = lib.GetConfig()
+	libConfig.SetGRPCEndpoint(pmRPCHost)
+	libConfig.SetEncodingConfig(encodingConfig)
 
 	acceptedAsset = config.GetString("accepted-asset")
 	wallet = config.GetString("wallet")
