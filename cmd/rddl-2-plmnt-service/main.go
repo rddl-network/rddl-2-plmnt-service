@@ -30,7 +30,6 @@ type MintRequestBody struct {
 }
 
 var (
-	planetmint        string
 	planetmintAddress string
 	rpcHost           string
 	rpcUser           string
@@ -200,9 +199,8 @@ func main() {
 		log.Fatalf("fatal error loading config file: %s", err)
 	}
 
-	planetmint = config.GetString("planetmint")
 	planetmintAddress = config.GetString("planetmint-address")
-	if err != nil || planetmint == "" || planetmintAddress == "" {
+	if err != nil || planetmintAddress == "" {
 		panic("Could not read configuration")
 	}
 
