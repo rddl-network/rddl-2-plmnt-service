@@ -3,7 +3,6 @@ package config
 import "sync"
 
 const DefaultConfigTemplate = `
-planetmint="{{ .Planetmint }}"
 planetmint-address="{{ .PlanetmintAddress }}"
 rpc-host="{{ .RPCHost }}"
 rpc-user="{{ .RPCUser }}"
@@ -16,7 +15,6 @@ wallet="{{ .Wallet }}"
 `
 
 type Config struct {
-	Planetmint        string `mapstructure:"planetmint"`
 	PlanetmintAddress string `mapstructure:"planetmint-address"`
 	RPCHost           string `mapstructure:"rpc-host"`
 	RPCUser           string `mapstructure:"rpc-user"`
@@ -37,7 +35,6 @@ var (
 // DefaultConfig returns RDDL-2-PLMNT default config
 func DefaultConfig() *Config {
 	return &Config{
-		Planetmint:        "planetmint-god",
 		PlanetmintAddress: "plmnt15xuq0yfxtd70l7jzr5hg722sxzcqqdcr8ptpl5",
 		RPCHost:           "planetmint-go-testnet-3.rddl.io:18884",
 		RPCUser:           "user",
