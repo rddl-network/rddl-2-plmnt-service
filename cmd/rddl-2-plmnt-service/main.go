@@ -10,13 +10,16 @@ import (
 	"strings"
 	"text/template"
 
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 
 	elements "github.com/rddl-network/elements-rpc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/planetmint/planetmint-go/app"
 	"github.com/planetmint/planetmint-go/lib"
@@ -86,7 +89,11 @@ func getConversion(rddl uint64) (plmnt uint64) {
 }
 
 func checkMintRequest(txhash string) (mintRequest *daotypes.QueryGetMintRequestsByHashResponse, err error) {
-	grcpConn, err := libConfig.GetGRPCConn()
+	grcpConn, err := grpc.Dial(
+		pmRPCHost,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
+	)
 	if err != nil {
 		return mintRequest, err
 	}
@@ -118,13 +125,7 @@ func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err erro
 	addr := sdk.MustAccAddressFromBech32(planetmintAddress)
 	msg := daotypes.NewMsgMintToken(planetmintAddress, &mintRequest)
 
-	ctx := context.Background()
-	txBytes, _, err := lib.BuildAndSignTx(ctx, addr, msg)
-	if err != nil {
-		return
-	}
-
-	_, err = lib.BroadcastTx(ctx, txBytes)
+	_, err = lib.BroadcastTxWithFileLock(addr, msg)
 	if err != nil {
 		return
 	}
@@ -215,7 +216,6 @@ func main() {
 	encodingConfig := app.MakeEncodingConfig()
 
 	libConfig = lib.GetConfig()
-	libConfig.SetGRPCEndpoint(pmRPCHost)
 	libConfig.SetEncodingConfig(encodingConfig)
 
 	acceptedAsset = config.GetString("accepted-asset")
