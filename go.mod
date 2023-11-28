@@ -3,9 +3,10 @@ module github.com/rddl-network/rddl-2-plmnt-service
 go 1.19
 
 require (
+	github.com/cosmos/cosmos-sdk v0.47.5
 	github.com/gin-gonic/gin v1.9.1
-	github.com/planetmint/planetmint-go v0.6.3
-	github.com/planetmint/planetmint-go/lib v0.1.2
+	github.com/planetmint/planetmint-go v0.6.4
+	github.com/planetmint/planetmint-go/lib v0.2.0
 	github.com/rddl-network/elements-rpc v0.0.2
 	github.com/spf13/viper v1.16.0
 	google.golang.org/grpc v1.56.3
@@ -53,7 +54,6 @@ require (
 	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.2 // indirect
-	github.com/cosmos/cosmos-sdk v0.47.5 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gogoproto v1.4.10 // indirect
