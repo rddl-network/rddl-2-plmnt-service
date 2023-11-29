@@ -4,6 +4,7 @@ import "sync"
 
 const DefaultConfigTemplate = `
 planetmint-address="{{ .PlanetmintAddress }}"
+planetmint-chain-id="{{ .PlanetmintChainID }}"
 rpc-host="{{ .RPCHost }}"
 rpc-user="{{ .RPCUser }}"
 rpc-pass="{{ .RPCPass }}"
@@ -16,6 +17,7 @@ wallet="{{ .Wallet }}"
 
 type Config struct {
 	PlanetmintAddress string `mapstructure:"planetmint-address"`
+	PlanetmintChainID string `mapstructure:"planetmint-chain-id"`
 	RPCHost           string `mapstructure:"rpc-host"`
 	RPCUser           string `mapstructure:"rpc-user"`
 	RPCPass           string `mapstructure:"rpc-pass"`
@@ -36,6 +38,7 @@ var (
 func DefaultConfig() *Config {
 	return &Config{
 		PlanetmintAddress: "plmnt15xuq0yfxtd70l7jzr5hg722sxzcqqdcr8ptpl5",
+		PlanetmintChainID: "planetmint-testnet-1",
 		RPCHost:           "planetmint-go-testnet-3.rddl.io:18884",
 		RPCUser:           "user",
 		RPCPass:           "password",
