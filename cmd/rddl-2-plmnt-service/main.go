@@ -218,6 +218,12 @@ func main() {
 	libConfig = lib.GetConfig()
 	libConfig.SetEncodingConfig(encodingConfig)
 
+	planetmintChainID := config.GetString("planetmint-chain-id")
+	if planetmintChainID == "" {
+		log.Fatalf("chain id must not be empty")
+	}
+	libConfig.SetChainID(planetmintChainID)
+
 	acceptedAsset = config.GetString("accepted-asset")
 	wallet = config.GetString("wallet")
 	if acceptedAsset == "" || wallet == "" {

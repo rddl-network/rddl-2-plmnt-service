@@ -5,8 +5,8 @@ go 1.19
 require (
 	github.com/cosmos/cosmos-sdk v0.47.5
 	github.com/gin-gonic/gin v1.9.1
-	github.com/planetmint/planetmint-go v0.6.4
-	github.com/planetmint/planetmint-go/lib v0.2.0
+	github.com/planetmint/planetmint-go v0.6.5
+	github.com/planetmint/planetmint-go/lib v0.2.1
 	github.com/rddl-network/elements-rpc v0.0.2
 	github.com/spf13/viper v1.16.0
 	google.golang.org/grpc v1.56.3
