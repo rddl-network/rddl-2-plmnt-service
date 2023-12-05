@@ -157,7 +157,7 @@ func postMintRequest(c *gin.Context) {
 
 	// fetch liquid tx for amount of rddl
 	url := fmt.Sprintf("http://%s:%s@%s/wallet/%s", rpcUser, rpcPass, rpcHost, wallet)
-	tx, err := elements.GetWalletTx(url, txhash)
+	tx, err := elements.GetTransaction(url, `"`+txhash+`"`)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching liquid tx: %s", err)})
 		return
