@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/planetmint/planetmint-go v0.6.5
 	github.com/planetmint/planetmint-go/lib v0.2.1
-	github.com/rddl-network/elements-rpc v0.0.2
+	github.com/rddl-network/elements-rpc v0.0.3
 	github.com/spf13/viper v1.16.0
 	google.golang.org/grpc v1.56.3
 )
