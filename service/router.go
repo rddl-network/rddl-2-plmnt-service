@@ -51,7 +51,7 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 
 	// fetch liquid tx for amount of rddl
 	url := fmt.Sprintf("http://%s:%s@%s/wallet/%s", cfg.RPCUser, cfg.RPCPass, cfg.RPCHost, cfg.Wallet)
-	tx, err := elements.GetTransaction(url, `"`+requestBody.Conversion.LiquidTXHash+`"`)
+	tx, err := elements.GetTransaction(url, []string{requestBody.Conversion.LiquidTXHash})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching liquid tx: %s", err)})
 		return
