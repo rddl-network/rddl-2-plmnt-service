@@ -17,10 +17,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupService(t *testing.T) (app *service.R2PService, router *gin.Engine) {
+func setupService(t *testing.T) (app *service.R2PService, router *gin.Engine, pmClientMock *testutil.MockIPlanetmintClient) {
 	router = gin.Default()
 	ctrl := gomock.NewController(t)
-	pmClientMock := testutil.NewMockIPlanetmintClient(ctrl)
+	pmClientMock = testutil.NewMockIPlanetmintClient(ctrl)
 	elements.Client = &elementsmocks.MockClient{} // add mock request for get tx for testing
 	app = service.NewR2PService(router, pmClientMock)
 	return
@@ -28,14 +28,31 @@ func setupService(t *testing.T) (app *service.R2PService, router *gin.Engine) {
 
 func TestPostMintRequestRoute(t *testing.T) {
 	t.Parallel()
-	_, router := setupService(t)
+	_, router, pmClientMock := setupService(t)
+
+	pmClientMock.EXPECT().CheckMintRequest(gomock.Any()).Return(nil, nil).AnyTimes()
+	pmClientMock.EXPECT().MintPLMNT(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 	tests := []struct {
 		desc    string
 		reqBody service.MintRequestBody
 		resBody string
 		code    int
-	}{}
+	}{
+		{
+			desc: "valid request",
+			reqBody: service.MintRequestBody{
+				Conversion: service.Conversion{
+					Beneficiary:  "beneficiary",
+					LiquidTXHash: "liquidtxhash",
+				},
+				Signature: "asd",
+				PublicKey: "pubkey",
+			},
+			resBody: "body",
+			code:    200,
+		},
+	}
 
 	for _, tc := range tests {
 		tc := tc
