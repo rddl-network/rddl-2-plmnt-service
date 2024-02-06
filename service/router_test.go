@@ -21,7 +21,7 @@ func setupService(t *testing.T) (app *service.R2PService, router *gin.Engine, pm
 	router = gin.Default()
 	ctrl := gomock.NewController(t)
 	pmClientMock = testutil.NewMockIPlanetmintClient(ctrl)
-	elements.Client = &elementsmocks.MockClient{} // add mock request for get tx for testing
+	elements.Client = &elementsmocks.MockClient{}
 	app = service.NewR2PService(router, pmClientMock)
 	return
 }
