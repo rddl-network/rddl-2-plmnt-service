@@ -37,7 +37,7 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 	}
 
 	// check whether mint request already exists
-	mr, err := r2p.checkMintRequest(requestBody.Conversion.LiquidTXHash)
+	mr, err := r2p.pmClient.CheckMintRequest(requestBody.Conversion.LiquidTXHash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching mint request: %s", err)})
 		return
@@ -71,7 +71,7 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 	}
 
 	plmntAmount := r2p.getConversion(uint64(amt))
-	err = r2p.mintPLMNT(requestBody.Conversion.Beneficiary, plmntAmount, requestBody.Conversion.LiquidTXHash)
+	err = r2p.pmClient.MintPLMNT(requestBody.Conversion.Beneficiary, plmntAmount, requestBody.Conversion.LiquidTXHash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while minting token: %s", err)})
 	}
