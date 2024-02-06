@@ -47,10 +47,15 @@ func TestPostMintRequestRoute(t *testing.T) {
 					LiquidTXHash: "liquidtxhash",
 				},
 				Signature: "asd",
-				PublicKey: "pubkey",
 			},
-			resBody: "body",
+			resBody: "",
 			code:    200,
+		},
+		{
+			desc:    "bad request",
+			reqBody: service.MintRequestBody{},
+			resBody: "{\"error\":\"Key: 'MintRequestBody.Conversion.Beneficiary' Error:Field validation for 'Beneficiary' failed on the 'required' tag\\nKey: 'MintRequestBody.Conversion.LiquidTXHash' Error:Field validation for 'LiquidTXHash' failed on the 'required' tag\\nKey: 'MintRequestBody.Signature' Error:Field validation for 'Signature' failed on the 'required' tag\"}",
+			code:    400,
 		},
 	}
 

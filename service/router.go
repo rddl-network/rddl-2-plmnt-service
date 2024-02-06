@@ -18,7 +18,6 @@ type Conversion struct {
 type MintRequestBody struct {
 	Conversion Conversion `binding:"required" json:"conversion"`
 	Signature  string     `binding:"required" json:"signature"`
-	PublicKey  string     `binding:"required" json:"public-key"`
 }
 
 func (r2p *R2PService) registerRoutes() {
