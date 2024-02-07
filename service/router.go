@@ -20,6 +20,11 @@ type MintRequestBody struct {
 	Signature  string     `binding:"required" json:"signature"`
 }
 
+func (r2p *R2PService) configureRouter() {
+	r2p.router.Use(gin.Logger())
+	r2p.router.Use(gin.Recovery())
+}
+
 func (r2p *R2PService) registerRoutes() {
 	r2p.router.POST("/mint", r2p.postMintRequest)
 }

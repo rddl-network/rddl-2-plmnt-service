@@ -18,6 +18,7 @@ type R2PService struct {
 
 func NewR2PService(router *gin.Engine, pmClient IPlanetmintClient) *R2PService {
 	service := &R2PService{router: router, pmClient: pmClient}
+	service.configureRouter()
 	service.registerRoutes()
 	return service
 }

@@ -103,7 +103,9 @@ func main() {
 		panic("Could not read configuration")
 	}
 
-	router := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+
 	pmClient := service.NewPlanetmintClient()
 	service := service.NewR2PService(router, pmClient)
 
