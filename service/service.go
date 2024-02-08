@@ -14,10 +14,11 @@ import (
 type R2PService struct {
 	router   *gin.Engine
 	pmClient IPlanetmintClient
+	eClient  IElementsClient
 }
 
-func NewR2PService(router *gin.Engine, pmClient IPlanetmintClient) *R2PService {
-	service := &R2PService{router: router, pmClient: pmClient}
+func NewR2PService(router *gin.Engine, pmClient IPlanetmintClient, eClient IElementsClient) *R2PService {
+	service := &R2PService{router: router, pmClient: pmClient, eClient: eClient}
 	service.configureRouter()
 	service.registerRoutes()
 	return service

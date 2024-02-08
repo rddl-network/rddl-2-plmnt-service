@@ -11,7 +11,7 @@ import (
 )
 
 func TestValidateConversionSignature(t *testing.T) {
-	app, _, _ := setupService(t)
+	app, _, _, _ := setupService(t)
 
 	sk := secp256k1.GenPrivKey()
 

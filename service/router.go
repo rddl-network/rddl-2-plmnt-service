@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	elements "github.com/rddl-network/elements-rpc"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
 )
 
@@ -16,8 +15,9 @@ type Conversion struct {
 
 // Request body for REST Endpoint
 type MintRequestBody struct {
-	Conversion Conversion `binding:"required" json:"conversion"`
-	Signature  string     `binding:"required" json:"signature"`
+	Conversion        Conversion `binding:"required" json:"conversion"`
+	AddressDescriptor string     `binding:"required" json:"address-derivation"`
+	Signature         string     `binding:"required" json:"signature"`
 }
 
 func (r2p *R2PService) configureRouter() {
@@ -55,11 +55,13 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 
 	// fetch liquid tx for amount of rddl
 	url := fmt.Sprintf("http://%s:%s@%s/wallet/%s", cfg.RPCUser, cfg.RPCPass, cfg.RPCHost, cfg.Wallet)
-	tx, err := elements.GetTransaction(url, []string{requestBody.Conversion.LiquidTXHash})
+	tx, err := r2p.eClient.GetTransaction(url, []string{requestBody.Conversion.LiquidTXHash})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching liquid tx: %s", err)})
 		return
 	}
+
+	// TODO: Verify sender and signature with AddressDescriptor
 
 	// return error if reissuance asset is not in liquid tx
 	amt, ok := tx.Amount[cfg.AcceptedAsset]

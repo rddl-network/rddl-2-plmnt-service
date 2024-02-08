@@ -107,7 +107,8 @@ func main() {
 	router := gin.New()
 
 	pmClient := service.NewPlanetmintClient()
-	service := service.NewR2PService(router, pmClient)
+	eClient := service.NewElementsClient()
+	service := service.NewR2PService(router, pmClient, eClient)
 
 	service.Run(config)
 }

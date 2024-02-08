@@ -8,7 +8,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/planetmint/planetmint-go v0.6.5
 	github.com/planetmint/planetmint-go/lib v0.2.1
-	github.com/rddl-network/elements-rpc v0.5.3
+	github.com/rddl-network/elements-rpc v0.5.4
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
 	google.golang.org/grpc v1.56.3

@@ -55,7 +55,6 @@ func (pmc *PlanetmintClient) CheckMintRequest(txhash string) (mintRequest *daoty
 		return mintRequest, err
 	}
 
-	// TODO: mock QueryClient with gomock
 	daoClient := daotypes.NewQueryClient(grcpConn)
 	mintRequest, err = daoClient.GetMintRequestsByHash(
 		context.Background(),
