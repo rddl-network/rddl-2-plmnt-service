@@ -10,9 +10,9 @@ import (
 )
 
 type Conversion struct {
-	Beneficiary string `binding:"required" json:"beneficiary"`
-	LiquidTX    string `binding:"required" json:"liquidtx"`
-	Descriptor  string `binding:"required" json:"descriptor"`
+	Beneficiary  string `binding:"required" json:"beneficiary"`
+	LiquidTxHash string `binding:"required" json:"liquid-tx-hash"`
+	Descriptor   string `binding:"required" json:"descriptor"`
 }
 
 // Request body for REST Endpoint
@@ -51,7 +51,7 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 	}
 
 	// check whether mint request already exists
-	mr, err := r2p.pmClient.CheckMintRequest(requestBody.Conversion.LiquidTX)
+	mr, err := r2p.pmClient.CheckMintRequest(requestBody.Conversion.LiquidTxHash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching mint request: %s", err)})
 		return
@@ -65,7 +65,7 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 
 	// fetch liquid tx for amount of rddl
 	url := fmt.Sprintf("http://%s:%s@%s/wallet/%s", cfg.RPCUser, cfg.RPCPass, cfg.RPCHost, cfg.Wallet)
-	tx, err := r2p.eClient.GetTransaction(url, []string{requestBody.Conversion.LiquidTX})
+	tx, err := r2p.eClient.GetTransaction(url, []string{requestBody.Conversion.LiquidTxHash})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching liquid tx: %s", err)})
 		return
@@ -96,7 +96,7 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 	}
 
 	plmntAmount := r2p.getConversion(uint64(amt))
-	err = r2p.pmClient.MintPLMNT(requestBody.Conversion.Beneficiary, plmntAmount, requestBody.Conversion.LiquidTX)
+	err = r2p.pmClient.MintPLMNT(requestBody.Conversion.Beneficiary, plmntAmount, requestBody.Conversion.LiquidTxHash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while minting token: %s", err)})
 	}

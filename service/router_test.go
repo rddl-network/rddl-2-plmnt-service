@@ -47,11 +47,11 @@ func TestPostMintRequestRoute(t *testing.T) {
 			desc: "valid request",
 			reqBody: service.MintRequestBody{
 				Conversion: service.Conversion{
-					Beneficiary: "plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx",
-					LiquidTX:    "b356413f906468a3220f403c350d01a5880dbd1417f3ff294a4a2ff62faf0839",
-					Descriptor:  "wpkh([6a00c946/0'/0'/501']02e24c96e967524fb2ad3b3e3c29c275e05934b12f420b7871443143d05ffe11c8)#8ktzldqn",
+					Beneficiary:  "plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx",
+					LiquidTxHash: "b356413f906468a3220f403c350d01a5880dbd1417f3ff294a4a2ff62faf0839",
+					Descriptor:   "wpkh([6a00c946/0'/0'/501']02e24c96e967524fb2ad3b3e3c29c275e05934b12f420b7871443143d05ffe11c8)#8ktzldqn",
 				},
-				Signature: "IKRJ47JiwZ/XR9anRworW2VoUbOWo+MM/7MO9fccp1u5fTv9gSsk5iQmgM3WEgvv2SeiOxdGDao4FONyXG5Xe3s=",
+				Signature: "ICucxAHOsf1kanl9UAjxMXemLmnP0deHWwyqdav68e8XCknJeaNBPFl9t7h52Ny1/XNgiQFu8XzrGLM8qahSy38=",
 			},
 			resBody: "",
 			code:    200,
@@ -59,16 +59,16 @@ func TestPostMintRequestRoute(t *testing.T) {
 		{
 			desc:    "missing request fields",
 			reqBody: service.MintRequestBody{},
-			resBody: "{\"error\":\"Key: 'MintRequestBody.Conversion.Beneficiary' Error:Field validation for 'Beneficiary' failed on the 'required' tag\\nKey: 'MintRequestBody.Conversion.LiquidTX' Error:Field validation for 'LiquidTX' failed on the 'required' tag\\nKey: 'MintRequestBody.Conversion.Descriptor' Error:Field validation for 'Descriptor' failed on the 'required' tag\\nKey: 'MintRequestBody.Signature' Error:Field validation for 'Signature' failed on the 'required' tag\"}",
+			resBody: "{\"error\":\"Key: 'MintRequestBody.Conversion.Beneficiary' Error:Field validation for 'Beneficiary' failed on the 'required' tag\\nKey: 'MintRequestBody.Conversion.LiquidTxHash' Error:Field validation for 'LiquidTxHash' failed on the 'required' tag\\nKey: 'MintRequestBody.Conversion.Descriptor' Error:Field validation for 'Descriptor' failed on the 'required' tag\\nKey: 'MintRequestBody.Signature' Error:Field validation for 'Signature' failed on the 'required' tag\"}",
 			code:    400,
 		},
 		{
 			desc: "invalid signature",
 			reqBody: service.MintRequestBody{
 				Conversion: service.Conversion{
-					Beneficiary: "plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx",
-					LiquidTX:    "b356413f906468a3220f403c350d01a5880dbd1417f3ff294a4a2ff62faf0123",
-					Descriptor:  "wpkh([6a00c946/0'/0'/501']02e24c96e967524fb2ad3b3e3c29c275e05934b12f420b7871443143d05ffe11c8)#8ktzldqn",
+					Beneficiary:  "plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx",
+					LiquidTxHash: "b356413f906468a3220f403c350d01a5880dbd1417f3ff294a4a2ff62faf0123",
+					Descriptor:   "wpkh([6a00c946/0'/0'/501']02e24c96e967524fb2ad3b3e3c29c275e05934b12f420b7871443143d05ffe11c8)#8ktzldqn",
 				},
 				Signature: "IKRJ47JiwZ/XR9anRworW2VoUbOWo+MM/7MO9fccp1u5fTv9gSsk5iQmgM3WEgvv2SeiOxdGDao4FONyXG5Xe3s=",
 			},

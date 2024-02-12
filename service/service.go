@@ -71,8 +71,14 @@ func (r2p *R2PService) VerifyMessage(conversionWithSignature MintRequestBody) (v
 	}
 
 	var buf bytes.Buffer
-	wire.WriteVarString(&buf, 0, messageSignatureHeader)
-	wire.WriteVarString(&buf, 0, message)
+	err = wire.WriteVarString(&buf, 0, messageSignatureHeader)
+	if err != nil {
+		panic(err)
+	}
+	err = wire.WriteVarString(&buf, 0, message)
+	if err != nil {
+		panic(err)
+	}
 	expectedMessageHash := chainhash.DoubleHashB(buf.Bytes())
 	pk, wasCompressed, err := btcecdsa.RecoverCompact(sig, expectedMessageHash)
 	if err != nil {
