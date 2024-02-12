@@ -35,6 +35,7 @@ func TestPostMintRequestRoute(t *testing.T) {
 	pmClientMock.EXPECT().MintPLMNT(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 	eClientMock.EXPECT().GetTransaction(gomock.Any(), gomock.Any()).Return(testutil.GetTransactionResult, nil).AnyTimes()
+	eClientMock.EXPECT().DeriveAddresses(gomock.Any(), gomock.Any()).Return(testutil.DeriveAddressesResult, nil).AnyTimes()
 
 	tests := []struct {
 		desc    string
@@ -46,19 +47,32 @@ func TestPostMintRequestRoute(t *testing.T) {
 			desc: "valid request",
 			reqBody: service.MintRequestBody{
 				Conversion: service.Conversion{
-					Beneficiary:  "beneficiary",
-					LiquidTXHash: "liquidtxhash",
+					Beneficiary: "plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx",
+					LiquidTX:    "b356413f906468a3220f403c350d01a5880dbd1417f3ff294a4a2ff62faf0839",
+					Descriptor:  "wpkh([6a00c946/0'/0'/501']02e24c96e967524fb2ad3b3e3c29c275e05934b12f420b7871443143d05ffe11c8)#8ktzldqn",
 				},
-				AddressDescriptor: "addressDescriptor",
-				Signature:         "asd",
+				Signature: "IKRJ47JiwZ/XR9anRworW2VoUbOWo+MM/7MO9fccp1u5fTv9gSsk5iQmgM3WEgvv2SeiOxdGDao4FONyXG5Xe3s=",
 			},
 			resBody: "",
 			code:    200,
 		},
 		{
-			desc:    "bad request",
+			desc:    "missing request fields",
 			reqBody: service.MintRequestBody{},
-			resBody: "{\"error\":\"Key: 'MintRequestBody.Conversion.Beneficiary' Error:Field validation for 'Beneficiary' failed on the 'required' tag\\nKey: 'MintRequestBody.Conversion.LiquidTXHash' Error:Field validation for 'LiquidTXHash' failed on the 'required' tag\\nKey: 'MintRequestBody.AddressDescriptor' Error:Field validation for 'AddressDescriptor' failed on the 'required' tag\\nKey: 'MintRequestBody.Signature' Error:Field validation for 'Signature' failed on the 'required' tag\"}",
+			resBody: "{\"error\":\"Key: 'MintRequestBody.Conversion.Beneficiary' Error:Field validation for 'Beneficiary' failed on the 'required' tag\\nKey: 'MintRequestBody.Conversion.LiquidTX' Error:Field validation for 'LiquidTX' failed on the 'required' tag\\nKey: 'MintRequestBody.Conversion.Descriptor' Error:Field validation for 'Descriptor' failed on the 'required' tag\\nKey: 'MintRequestBody.Signature' Error:Field validation for 'Signature' failed on the 'required' tag\"}",
+			code:    400,
+		},
+		{
+			desc: "invalid signature",
+			reqBody: service.MintRequestBody{
+				Conversion: service.Conversion{
+					Beneficiary: "plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx",
+					LiquidTX:    "b356413f906468a3220f403c350d01a5880dbd1417f3ff294a4a2ff62faf0123",
+					Descriptor:  "wpkh([6a00c946/0'/0'/501']02e24c96e967524fb2ad3b3e3c29c275e05934b12f420b7871443143d05ffe11c8)#8ktzldqn",
+				},
+				Signature: "IKRJ47JiwZ/XR9anRworW2VoUbOWo+MM/7MO9fccp1u5fTv9gSsk5iQmgM3WEgvv2SeiOxdGDao4FONyXG5Xe3s=",
+			},
+			resBody: "{\"error\":\"invalid signature\"}",
 			code:    400,
 		},
 	}
