@@ -65,6 +65,12 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 		return
 	}
 
+	// check if enough confirmations
+	if tx.Confirmations < cfg.Confirmations {
+		c.JSON(http.StatusConflict, gin.H{"error": "not enough confirmations on tx"})
+		return
+	}
+
 	// check if provided address and descriptor are part of the transaction
 	code, err = r2p.checkAddress(url, tx.Details[0].Address, requestBody.Conversion.Descriptor)
 	if err != nil {

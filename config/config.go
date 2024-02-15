@@ -13,6 +13,7 @@ service-port="{{ .ServicePort }}"
 service-port={{ .ServicePort }}
 accepted-asset="{{ .AcceptedAsset }}"
 wallet="{{ .Wallet }}"
+confirmations={{ .Confirmations }}
 `
 
 type Config struct {
@@ -26,6 +27,7 @@ type Config struct {
 	ServiceBind       string `mapstructure:"service-bind"`
 	AcceptedAsset     string `mapstructure:"accepted-asset"`
 	Wallet            string `mapstructure:"wallet"`
+	Confirmations     int64  `mapstructure:"confirmations"`
 }
 
 // global singleton
@@ -47,6 +49,7 @@ func DefaultConfig() *Config {
 		ServiceBind:       "localhost",
 		AcceptedAsset:     "7add40beb27df701e02ee85089c5bc0021bc813823fedb5f1dcb5debda7f3da9",
 		Wallet:            "rddl2plmnt",
+		Confirmations:     10,
 	}
 }
 
