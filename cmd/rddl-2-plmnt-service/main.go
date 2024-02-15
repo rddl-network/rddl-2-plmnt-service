@@ -123,6 +123,6 @@ func main() {
 	service := service.NewR2PService(router, pmClient, eClient)
 
 	if err = service.Run(config); err != nil {
-		log.Panicf("error occured while spinning up service: %v", err)
+		log.Panicf("error occurred while spinning up service: %v", err)
 	}
 }

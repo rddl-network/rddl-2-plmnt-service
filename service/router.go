@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -96,12 +97,12 @@ func (r2p *R2PService) checkMintRequest(liquidTxHash string) (code int, err erro
 	// check whether mint request already exists
 	mr, err := r2p.pmClient.CheckMintRequest(liquidTxHash)
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("error while fetching mint request: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("error while fetching mint request: %w", err)
 	}
 
 	// return because mint request for txhash is already
 	if mr != nil {
-		return http.StatusConflict, fmt.Errorf("already minted")
+		return http.StatusConflict, errors.New("already minted")
 	}
 	return
 }
@@ -109,7 +110,7 @@ func (r2p *R2PService) checkMintRequest(liquidTxHash string) (code int, err erro
 func (r2p *R2PService) checkAddress(url string, txAddress string, descriptor string) (code int, err error) {
 	addresses, err := r2p.eClient.DeriveAddresses(url, []string{descriptor})
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("error while deriving liquid addresses: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("error while deriving liquid addresses: %w", err)
 	}
 
 	if !slices.Contains(addresses, txAddress) {
@@ -122,7 +123,7 @@ func (r2p *R2PService) checkAsset(amounts map[string]float64, asset string) (amo
 	// return error if reissuance asset is not in liquid tx
 	amt, ok := amounts[asset]
 	if !ok {
-		return 0, fmt.Errorf("tx does not contain accepted asset: " + asset)
+		return 0, errors.New("tx does not contain accepted asset: " + asset)
 	}
 
 	// check if amount is positive otherwise return error
