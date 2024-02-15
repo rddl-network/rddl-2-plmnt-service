@@ -2,35 +2,18 @@ package main
 
 import (
 	"bytes"
-	"context"
-	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"strings"
 	"text/template"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
-
-	elements "github.com/rddl-network/elements-rpc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/planetmint/planetmint-go/app"
 	"github.com/planetmint/planetmint-go/lib"
-	daotypes "github.com/planetmint/planetmint-go/x/dao/types"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
+	"github.com/rddl-network/rddl-2-plmnt-service/service"
 )
-
-// Request body for REST Endpoint
-type MintRequestBody struct {
-	Beneficiary string `json:"beneficiary"`
-}
 
 var (
 	planetmintAddress string
@@ -52,6 +35,18 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 
 	err = v.ReadInConfig()
 	if err == nil {
+		cfg := config.GetConfig()
+		cfg.PlanetmintAddress = v.GetString("planetmint-address")
+		cfg.PlanetmintChainID = v.GetString("planetmint-chain-id")
+		cfg.RPCHost = v.GetString("rpc-host")
+		cfg.RPCUser = v.GetString("rpc-user")
+		cfg.RPCPass = v.GetString("rpc-pass")
+		cfg.PlanetmintRPCHost = v.GetString("planetmint-rpc-host")
+		cfg.ServicePort = v.GetInt("service-port")
+		cfg.ServiceBind = v.GetString("service-bind")
+		cfg.AcceptedAsset = v.GetString("accepted-asset")
+		cfg.Wallet = v.GetString("wallet")
+		cfg.Confirmations = v.GetInt64("confirmations")
 		return
 	}
 	log.Println("no config file found.")
@@ -80,116 +75,6 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 	log.Println("default config file created. please adapt it and restart the application. exiting...")
 	os.Exit(0)
 	return
-}
-
-// Constant rate to be replaced with conversion rate monitor
-func getConversion(rddl uint64) (plmnt uint64) {
-	conversionRate := uint64(100)
-	return rddl * conversionRate
-}
-
-func checkMintRequest(txhash string) (mintRequest *daotypes.QueryGetMintRequestsByHashResponse, err error) {
-	grcpConn, err := grpc.Dial(
-		pmRPCHost,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
-	)
-	if err != nil {
-		return mintRequest, err
-	}
-
-	daoClient := daotypes.NewQueryClient(grcpConn)
-	mintRequest, err = daoClient.GetMintRequestsByHash(
-		context.Background(),
-		&daotypes.QueryGetMintRequestsByHashRequest{Hash: txhash},
-	)
-
-	if strings.Contains(err.Error(), codes.NotFound.String()) {
-		return mintRequest, nil
-	}
-
-	if err != nil {
-		return mintRequest, err
-	}
-
-	return
-}
-
-func mintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err error) {
-	mintRequest := daotypes.MintRequest{
-		Beneficiary:  beneficiary,
-		Amount:       amount,
-		LiquidTxHash: liquidTxHash,
-	}
-
-	addr := sdk.MustAccAddressFromBech32(planetmintAddress)
-	msg := daotypes.NewMsgMintToken(planetmintAddress, &mintRequest)
-
-	_, err = lib.BroadcastTxWithFileLock(addr, msg)
-	if err != nil {
-		return
-	}
-
-	return
-}
-
-func postMintRequest(c *gin.Context) {
-	txhash := c.Param("txhash")
-
-	// if beneficiary address missing return bad request
-	var requestBody MintRequestBody
-	if err := c.BindJSON(&requestBody); err != nil {
-		return
-	}
-
-	// check whether mint request already exists
-	mr, err := checkMintRequest(txhash)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching mint request: %s", err)})
-		return
-	}
-
-	// return because mint request for txhash is already
-	if mr != nil {
-		c.JSON(http.StatusConflict, gin.H{"msg": "already minted"})
-		return
-	}
-
-	// fetch liquid tx for amount of rddl
-	url := fmt.Sprintf("http://%s:%s@%s/wallet/%s", rpcUser, rpcPass, rpcHost, wallet)
-	tx, err := elements.GetTransaction(url, `"`+txhash+`"`)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while fetching liquid tx: %s", err)})
-		return
-	}
-
-	// return error if reissuance asset is not in liquid tx
-	amt, ok := tx.Amount[acceptedAsset]
-	if !ok {
-		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("tx does not contain accepted asset: %s", acceptedAsset)})
-		return
-	}
-
-	// check if amount is positive otherwise return error
-	if amt <= 0 {
-		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("accepted asset amount must be positive got: %v", amt)})
-		return
-	}
-
-	plmntAmount := getConversion(uint64(amt))
-	err = mintPLMNT(requestBody.Beneficiary, plmntAmount, txhash)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("error while minting token: %s", err)})
-	}
-}
-
-func startWebService(config *viper.Viper) {
-	router := gin.Default()
-	router.POST("/mint/:txhash", postMintRequest)
-
-	bindAddress := config.GetString("service-bind")
-	servicePort := config.GetString("service-port")
-	_ = router.Run(fmt.Sprintf("%s:%s", bindAddress, servicePort))
 }
 
 var libConfig *lib.Config
@@ -230,5 +115,14 @@ func main() {
 		panic("Could not read configuration")
 	}
 
-	startWebService(config)
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+
+	pmClient := service.NewPlanetmintClient()
+	eClient := service.NewElementsClient()
+	service := service.NewR2PService(router, pmClient, eClient)
+
+	if err = service.Run(config); err != nil {
+		log.Panicf("error occurred while spinning up service: %v", err)
+	}
 }
