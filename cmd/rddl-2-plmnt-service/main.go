@@ -110,5 +110,7 @@ func main() {
 	eClient := service.NewElementsClient()
 	service := service.NewR2PService(router, pmClient, eClient)
 
-	service.Run(config)
+	if err = service.Run(config); err != nil {
+		log.Panicf("error occured while spinning up service: %v", err)
+	}
 }

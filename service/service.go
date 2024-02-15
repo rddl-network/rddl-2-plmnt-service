@@ -35,10 +35,10 @@ func NewR2PService(router *gin.Engine, pmClient IPlanetmintClient, eClient IElem
 	return service
 }
 
-func (r2p *R2PService) Run(config *viper.Viper) {
-	bindAddress := config.GetString("service-bind")
+func (r2p *R2PService) Run(config *viper.Viper) (err error) {
+	serviceBind := config.GetString("service-bind")
 	servicePort := config.GetString("service-port")
-	_ = r2p.router.Run(fmt.Sprintf("%s:%s", bindAddress, servicePort))
+	return r2p.router.Run(fmt.Sprintf("%s:%s", serviceBind, servicePort))
 }
 
 // Constant rate to be replaced with conversion rate monitor
