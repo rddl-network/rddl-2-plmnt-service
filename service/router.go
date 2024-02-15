@@ -50,16 +50,10 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 		return
 	}
 
-	// check whether mint request already exists
-	mr, err := r2p.pmClient.CheckMintRequest(requestBody.Conversion.LiquidTxHash)
+	// check if mint request has already been issued
+	code, err := r2p.checkMintRequest(requestBody.Conversion.LiquidTxHash)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "error while fetching mint request: " + err.Error()})
-		return
-	}
-
-	// return because mint request for txhash is already
-	if mr != nil {
-		c.JSON(http.StatusConflict, gin.H{"msg": "already minted"})
+		c.JSON(code, gin.H{"error": "error while checking mint request: " + err.Error()})
 		return
 	}
 
@@ -71,27 +65,17 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 		return
 	}
 
-	addresses, err := r2p.eClient.DeriveAddresses(url, []string{requestBody.Conversion.Descriptor})
+	// check if provided address and descriptor are part of the transaction
+	code, err = r2p.checkAddress(url, tx.Details[0].Address, requestBody.Conversion.Descriptor)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "error while deriving liquid addresses: " + err.Error()})
+		c.JSON(code, gin.H{"error": "error while checking address descriptor: " + err.Error()})
 		return
 	}
 
-	if !slices.Contains(addresses, tx.Details[0].Address) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "transaction details do not contain address derived from descriptor: " + requestBody.Conversion.Descriptor})
-		return
-	}
-
-	// return error if reissuance asset is not in liquid tx
-	amt, ok := tx.Amount[cfg.AcceptedAsset]
-	if !ok {
-		c.JSON(http.StatusConflict, gin.H{"error": "tx does not contain accepted asset: " + cfg.AcceptedAsset})
-		return
-	}
-
-	// check if amount is positive otherwise return error
-	if amt <= 0 {
-		c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("accepted asset amount must be positive got: %v", amt)})
+	// check if asset is in liquid tx
+	amt, err := r2p.checkAsset(tx.Amount, cfg.AcceptedAsset)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "error while checking asset: " + err.Error()})
 		return
 	}
 
@@ -100,4 +84,44 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error while minting token: " + err.Error()})
 	}
+}
+
+func (r2p *R2PService) checkMintRequest(liquidTxHash string) (code int, err error) {
+	// check whether mint request already exists
+	mr, err := r2p.pmClient.CheckMintRequest(liquidTxHash)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("error while fetching mint request: %v", err)
+	}
+
+	// return because mint request for txhash is already
+	if mr != nil {
+		return http.StatusConflict, fmt.Errorf("already minted")
+	}
+	return
+}
+
+func (r2p *R2PService) checkAddress(url string, txAddress string, descriptor string) (code int, err error) {
+	addresses, err := r2p.eClient.DeriveAddresses(url, []string{descriptor})
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("error while deriving liquid addresses: %v", err)
+	}
+
+	if !slices.Contains(addresses, txAddress) {
+		return http.StatusBadRequest, fmt.Errorf("transaction details do not contain address derived from descriptor: %s", descriptor)
+	}
+	return
+}
+
+func (r2p *R2PService) checkAsset(amounts map[string]float64, asset string) (amount float64, err error) {
+	// return error if reissuance asset is not in liquid tx
+	amt, ok := amounts[asset]
+	if !ok {
+		return 0, fmt.Errorf("tx does not contain accepted asset: " + asset)
+	}
+
+	// check if amount is positive otherwise return error
+	if amt <= 0 {
+		return 0, fmt.Errorf("accepted asset amount must be positive got: %v", amt)
+	}
+	return amt, nil
 }
