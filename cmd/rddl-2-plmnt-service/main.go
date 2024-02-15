@@ -35,6 +35,17 @@ func loadConfig(path string) (v *viper.Viper, err error) {
 
 	err = v.ReadInConfig()
 	if err == nil {
+		cfg := config.GetConfig()
+		cfg.PlanetmintAddress = v.GetString("planetmint-address")
+		cfg.PlanetmintChainID = v.GetString("planetmint-chain-id")
+		cfg.RPCHost = v.GetString("rpc-host")
+		cfg.RPCUser = v.GetString("rpc-user")
+		cfg.RPCPass = v.GetString("rpc-pass")
+		cfg.PlanetmintRPCHost = v.GetString("planetmint-rpc-host")
+		cfg.ServicePort = v.GetInt("service-port")
+		cfg.ServiceBind = v.GetString("service-bind")
+		cfg.AcceptedAsset = v.GetString("accepted-asset")
+		cfg.Wallet = v.GetString("wallet")
 		return
 	}
 	log.Println("no config file found.")
