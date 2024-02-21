@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"github.com/syndtr/goleveldb/leveldb"
 
 	"github.com/planetmint/planetmint-go/app"
 	"github.com/planetmint/planetmint-go/lib"
@@ -118,9 +119,16 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
+	db, err := leveldb.OpenFile("./conversions.db", nil)
+	if err != nil {
+		db.Close()
+		log.Fatal(err)
+		panic("unable to load database")
+	}
+	defer db.Close()
 	pmClient := service.NewPlanetmintClient()
 	eClient := service.NewElementsClient()
-	service := service.NewR2PService(router, pmClient, eClient)
+	service := service.NewR2PService(router, pmClient, eClient, db)
 
 	if err = service.Run(config); err != nil {
 		log.Panicf("error occurred while spinning up service: %v", err)

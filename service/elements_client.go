@@ -8,6 +8,7 @@ import (
 type IElementsClient interface {
 	GetTransaction(url string, params []string) (transactionResult types.GetTransactionResult, err error)
 	DeriveAddresses(url string, params []string) (addresses types.DeriveAddressesResult, err error)
+	GetNewAddress(url string, params []string) (address string, err error)
 }
 
 type ElementsClient struct{}
@@ -22,4 +23,8 @@ func (ec *ElementsClient) GetTransaction(url string, params []string) (transacti
 
 func (ec *ElementsClient) DeriveAddresses(url string, params []string) (addresses types.DeriveAddressesResult, err error) {
 	return elementsrpc.DeriveAddresses(url, params)
+}
+
+func (ec *ElementsClient) GetNewAddress(url string, params []string) (address string, err error) {
+	return elementsrpc.GetNewAddress(url, params)
 }

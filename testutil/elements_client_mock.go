@@ -63,3 +63,9 @@ func (mr *MockIElementsClientMockRecorder) GetTransaction(url, params interface{
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransaction", reflect.TypeOf((*MockIElementsClient)(nil).GetTransaction), url, params)
 }
+
+func (m *MockIElementsClient) GetNewAddress(url string, params []string) (address string, err error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNewAddress", url, params)
+	return ret[0].(string), nil
+}

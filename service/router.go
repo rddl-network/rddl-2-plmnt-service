@@ -29,6 +29,46 @@ func (r2p *R2PService) configureRouter() {
 
 func (r2p *R2PService) registerRoutes() {
 	r2p.router.POST("/mint", r2p.postMintRequest)
+	r2p.router.GET("/receiveaddress/:plmntaddress", r2p.getReceiveAddress)
+}
+
+type AddressBody struct {
+	LiquidAddress    string `binding:"required" json:"liquid-address"`
+	PlmntBeneficiary string `binding:"required" json:"plmnt-beneficiary"`
+}
+
+func (r2p *R2PService) getReceiveAddress(c *gin.Context) {
+	cfg := config.GetConfig()
+	address := c.Param("plmntaddress")
+
+	// is legit machine address?
+	resp, err := r2p.pmClient.IsLegitMachine(address)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if resp.GetMachine().Address != address {
+		c.JSON(http.StatusBadRequest, gin.H{"error:": "different machine resolved: " + err.Error()})
+		return
+	}
+
+	// derive new receive address
+	receiveAddress, err := r2p.eClient.GetNewAddress(cfg.GetElementsURL(), []string{})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "getting new receive address: " + err.Error()})
+		return
+	}
+	// store receive address - planetmint address pair
+	err = r2p.db.Put([]byte(receiveAddress), []byte(address), nil)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "storing addresses in DB: " + err.Error()})
+		return
+	}
+
+	var resBody AddressBody
+	resBody.LiquidAddress = receiveAddress
+	resBody.PlmntBeneficiary = address
+	c.JSON(http.StatusOK, resBody)
 }
 
 func (r2p *R2PService) postMintRequest(c *gin.Context) {
@@ -59,8 +99,7 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 	}
 
 	// fetch liquid tx for amount of rddl
-	url := fmt.Sprintf("http://%s:%s@%s/wallet/%s", cfg.RPCUser, cfg.RPCPass, cfg.RPCHost, cfg.Wallet)
-	tx, err := r2p.eClient.GetTransaction(url, []string{requestBody.Conversion.LiquidTxHash})
+	tx, err := r2p.eClient.GetTransaction(cfg.GetElementsURL(), []string{requestBody.Conversion.LiquidTxHash})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error while fetching liquid tx: " + err.Error()})
 		return
@@ -73,7 +112,7 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 	}
 
 	// check if provided address and descriptor are part of the transaction
-	code, err = r2p.checkAddress(url, tx.Details[0].Address, requestBody.Conversion.Descriptor)
+	code, err = r2p.checkAddress(cfg.GetElementsURL(), tx.Details[0].Address, requestBody.Conversion.Descriptor)
 	if err != nil {
 		c.JSON(code, gin.H{"error": "error while checking address descriptor: " + err.Error()})
 		return

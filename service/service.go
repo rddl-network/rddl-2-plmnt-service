@@ -14,6 +14,7 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 // Text used to signify that a signed message follows and to prevent
@@ -26,10 +27,11 @@ type R2PService struct {
 	router   *gin.Engine
 	pmClient IPlanetmintClient
 	eClient  IElementsClient
+	db       *leveldb.DB
 }
 
-func NewR2PService(router *gin.Engine, pmClient IPlanetmintClient, eClient IElementsClient) *R2PService {
-	service := &R2PService{router: router, pmClient: pmClient, eClient: eClient}
+func NewR2PService(router *gin.Engine, pmClient IPlanetmintClient, eClient IElementsClient, db *leveldb.DB) *R2PService {
+	service := &R2PService{router: router, pmClient: pmClient, eClient: eClient, db: db}
 	service.configureRouter()
 	service.registerRoutes()
 	return service

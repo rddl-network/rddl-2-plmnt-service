@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,6 +16,7 @@ import (
 	"github.com/rddl-network/rddl-2-plmnt-service/service"
 	"github.com/rddl-network/rddl-2-plmnt-service/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 func setupService(t *testing.T) (app *service.R2PService, router *gin.Engine, pmClientMock *testutil.MockIPlanetmintClient, eClientMock *testutil.MockIElementsClient) {
@@ -23,7 +25,15 @@ func setupService(t *testing.T) (app *service.R2PService, router *gin.Engine, pm
 	pmClientMock = testutil.NewMockIPlanetmintClient(ctrl)
 	eClientMock = testutil.NewMockIElementsClient(ctrl)
 	elements.Client = &elementsmocks.MockClient{}
-	app = service.NewR2PService(router, pmClientMock, eClientMock)
+
+	db, err := leveldb.OpenFile("./conversions.db", nil)
+	if err != nil {
+		db.Close()
+		log.Fatal(err)
+		panic("unable to load database")
+	}
+	defer db.Close()
+	app = service.NewR2PService(router, pmClientMock, eClientMock, db)
 	return
 }
 

@@ -9,4 +9,5 @@ var (
 	DeriveAddressesResult       = types.DeriveAddressesResult{"tex1q2xn886usv9wxuvnfa6cll4ny6q2dk99mcpefk4"}
 	GetTransactionResultDetails = []types.GetTransactionDetailsResult{{Address: "tex1q2xn886usv9wxuvnfa6cll4ny6q2dk99mcpefk4"}}
 	zeros                       = "0000000000000000000000000000000000000000000000000000000000000000"
+	GetNewAddress               = "tex1q2xn886usv9wxuvnfa6cll4ny6q2dk99mcpefk4"
 )

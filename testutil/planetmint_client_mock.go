@@ -9,6 +9,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	types "github.com/planetmint/planetmint-go/x/dao/types"
+	machinetypes "github.com/planetmint/planetmint-go/x/machine/types"
 )
 
 // MockIPlanetmintClient is a mock of IPlanetmintClient interface.
@@ -61,4 +62,8 @@ func (m *MockIPlanetmintClient) MintPLMNT(beneficiary string, amount uint64, liq
 func (mr *MockIPlanetmintClientMockRecorder) MintPLMNT(beneficiary, amount, liquidTxHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MintPLMNT", reflect.TypeOf((*MockIPlanetmintClient)(nil).MintPLMNT), beneficiary, amount, liquidTxHash)
+}
+
+func (m *MockIPlanetmintClient) IsLegitMachine(address string) (machineResponse *machinetypes.QueryGetMachineByAddressResponse, err error) {
+	return
 }
