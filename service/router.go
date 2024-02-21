@@ -1,10 +1,13 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
@@ -33,8 +36,15 @@ func (r2p *R2PService) registerRoutes() {
 }
 
 type AddressBody struct {
-	LiquidAddress    string `binding:"required" json:"liquid-address"`
-	PlmntBeneficiary string `binding:"required" json:"plmnt-beneficiary"`
+	LiquidAddress         string `binding:"required" json:"liquid-address"`
+	PlanetmintBeneficiary string `binding:"required" json:"planetmint-beneficiary"`
+}
+
+type ConversionRequest struct {
+	ConfidentialAddress   string `binding:"required" json:"confidential-address"`
+	UnconfidentialAddress string `binding:"required" json:"unconfidential-address"`
+	PlanetmintAddress     string `binding:"required" json:"planetmint-address"`
+	Timestamp             int64  `binding:"required" json:"timestamp"`
 }
 
 func (r2p *R2PService) getReceiveAddress(c *gin.Context) {
@@ -48,26 +58,45 @@ func (r2p *R2PService) getReceiveAddress(c *gin.Context) {
 		return
 	}
 	if resp.GetMachine().Address != address {
-		c.JSON(http.StatusBadRequest, gin.H{"error:": "different machine resolved: " + err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error:": "different machine resolved: " + resp.GetMachine().Address + " instead of " + address})
 		return
 	}
 
 	// derive new receive address
-	receiveAddress, err := r2p.eClient.GetNewAddress(cfg.GetElementsURL(), []string{})
+	confReceiveAddress, err := r2p.eClient.GetNewAddress(cfg.GetElementsURL(), []string{
+		``,
+	})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "getting new receive address: " + err.Error()})
 		return
 	}
+	addressInfo, err := r2p.eClient.GetAddressInfo(cfg.GetElementsURL(), []string{confReceiveAddress})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "getting receive address information: " + err.Error()})
+		return
+	}
+
 	// store receive address - planetmint address pair
-	err = r2p.db.Put([]byte(receiveAddress), []byte(address), nil)
+	var convReq ConversionRequest
+	convReq.ConfidentialAddress = confReceiveAddress
+	convReq.UnconfidentialAddress = addressInfo.Unconfidential
+	convReq.PlanetmintAddress = address
+	now := time.Now()
+	convReq.Timestamp = now.Unix()
+
+	convReqtBytes, err := json.Marshal(convReq)
+	if err != nil {
+		log.Fatalf("Error serializing ConversionRequest: %v", err)
+	}
+	err = r2p.db.Put([]byte(confReceiveAddress), convReqtBytes, nil)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "storing addresses in DB: " + err.Error()})
 		return
 	}
 
 	var resBody AddressBody
-	resBody.LiquidAddress = receiveAddress
-	resBody.PlmntBeneficiary = address
+	resBody.LiquidAddress = confReceiveAddress
+	resBody.PlanetmintBeneficiary = address
 	c.JSON(http.StatusOK, resBody)
 }
 

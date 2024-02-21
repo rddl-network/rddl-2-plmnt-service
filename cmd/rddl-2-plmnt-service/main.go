@@ -123,7 +123,6 @@ func main() {
 	if err != nil {
 		db.Close()
 		log.Fatal(err)
-		panic("unable to load database")
 	}
 	defer db.Close()
 	pmClient := service.NewPlanetmintClient()

@@ -91,7 +91,7 @@ func (pmc *PlanetmintClient) IsLegitMachine(address string) (machineResponse *ma
 		&machinetypes.QueryGetMachineByAddressRequest{Address: address},
 	)
 
-	if strings.Contains(err.Error(), codes.NotFound.String()) {
+	if err != nil && strings.Contains(err.Error(), codes.NotFound.String()) {
 		return machineResponse, nil
 	}
 

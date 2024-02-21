@@ -9,7 +9,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	types "github.com/planetmint/planetmint-go/x/dao/types"
-	machinetypes "github.com/planetmint/planetmint-go/x/machine/types"
+	types0 "github.com/planetmint/planetmint-go/x/machine/types"
 )
 
 // MockIPlanetmintClient is a mock of IPlanetmintClient interface.
@@ -50,6 +50,21 @@ func (mr *MockIPlanetmintClientMockRecorder) CheckMintRequest(txhash interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckMintRequest", reflect.TypeOf((*MockIPlanetmintClient)(nil).CheckMintRequest), txhash)
 }
 
+// IsLegitMachine mocks base method.
+func (m *MockIPlanetmintClient) IsLegitMachine(address string) (*types0.QueryGetMachineByAddressResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsLegitMachine", address)
+	ret0, _ := ret[0].(*types0.QueryGetMachineByAddressResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsLegitMachine indicates an expected call of IsLegitMachine.
+func (mr *MockIPlanetmintClientMockRecorder) IsLegitMachine(address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsLegitMachine", reflect.TypeOf((*MockIPlanetmintClient)(nil).IsLegitMachine), address)
+}
+
 // MintPLMNT mocks base method.
 func (m *MockIPlanetmintClient) MintPLMNT(beneficiary string, amount uint64, liquidTxHash string) error {
 	m.ctrl.T.Helper()
@@ -62,8 +77,4 @@ func (m *MockIPlanetmintClient) MintPLMNT(beneficiary string, amount uint64, liq
 func (mr *MockIPlanetmintClientMockRecorder) MintPLMNT(beneficiary, amount, liquidTxHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MintPLMNT", reflect.TypeOf((*MockIPlanetmintClient)(nil).MintPLMNT), beneficiary, amount, liquidTxHash)
-}
-
-func (m *MockIPlanetmintClient) IsLegitMachine(address string) (machineResponse *machinetypes.QueryGetMachineByAddressResponse, err error) {
-	return
 }
