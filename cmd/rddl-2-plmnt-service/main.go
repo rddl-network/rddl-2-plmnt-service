@@ -1,13 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"log"
-	"os"
-	"text/template"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"github.com/syndtr/goleveldb/leveldb"
 
 	"github.com/planetmint/planetmint-go/app"
@@ -26,62 +22,10 @@ var (
 	wallet            string
 )
 
-func loadConfig(path string) (v *viper.Viper, err error) {
-	v = viper.New()
-	v.AddConfigPath(path)
-	v.SetConfigName("app")
-	v.SetConfigType("toml")
-
-	v.AutomaticEnv()
-
-	err = v.ReadInConfig()
-	if err == nil {
-		cfg := config.GetConfig()
-		cfg.PlanetmintAddress = v.GetString("planetmint-address")
-		cfg.PlanetmintChainID = v.GetString("planetmint-chain-id")
-		cfg.RPCHost = v.GetString("rpc-host")
-		cfg.RPCUser = v.GetString("rpc-user")
-		cfg.RPCPass = v.GetString("rpc-pass")
-		cfg.PlanetmintRPCHost = v.GetString("planetmint-rpc-host")
-		cfg.ServicePort = v.GetInt("service-port")
-		cfg.ServiceBind = v.GetString("service-bind")
-		cfg.AcceptedAsset = v.GetString("accepted-asset")
-		cfg.Wallet = v.GetString("wallet")
-		cfg.Confirmations = v.GetInt64("confirmations")
-		return
-	}
-	log.Println("no config file found.")
-
-	tmpl := template.New("appConfigFileTemplate")
-	configTemplate, err := tmpl.Parse(config.DefaultConfigTemplate)
-	if err != nil {
-		return
-	}
-
-	var buffer bytes.Buffer
-	err = configTemplate.Execute(&buffer, config.GetConfig())
-	if err != nil {
-		return
-	}
-
-	err = v.ReadConfig(&buffer)
-	if err != nil {
-		return
-	}
-	err = v.SafeWriteConfig()
-	if err != nil {
-		return
-	}
-
-	log.Println("default config file created. please adapt it and restart the application. exiting...")
-	os.Exit(0)
-	return
-}
-
 var libConfig *lib.Config
 
 func main() {
-	config, err := loadConfig("./")
+	config, err := config.LoadConfig("./")
 	if err != nil {
 		log.Fatalf("fatal error loading config file: %s", err)
 	}

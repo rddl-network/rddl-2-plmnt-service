@@ -93,3 +93,18 @@ func (mr *MockIElementsClientMockRecorder) GetTransaction(url, params interface{
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransaction", reflect.TypeOf((*MockIElementsClient)(nil).GetTransaction), url, params)
 }
+
+// ListReceivedByAddress mocks base method.
+func (m *MockIElementsClient) ListReceivedByAddress(url string, params []string) ([]types.ListReceivedByAddressResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListReceivedByAddress", url, params)
+	ret0, _ := ret[0].([]types.ListReceivedByAddressResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListReceivedByAddress indicates an expected call of ListReceivedByAddress.
+func (mr *MockIElementsClientMockRecorder) ListReceivedByAddress(url, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListReceivedByAddress", reflect.TypeOf((*MockIElementsClient)(nil).ListReceivedByAddress), url, params)
+}

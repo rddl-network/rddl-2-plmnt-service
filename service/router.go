@@ -1,13 +1,10 @@
 package service
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"slices"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
@@ -40,13 +37,6 @@ type AddressBody struct {
 	PlanetmintBeneficiary string `binding:"required" json:"planetmint-beneficiary"`
 }
 
-type ConversionRequest struct {
-	ConfidentialAddress   string `binding:"required" json:"confidential-address"`
-	UnconfidentialAddress string `binding:"required" json:"unconfidential-address"`
-	PlanetmintAddress     string `binding:"required" json:"planetmint-address"`
-	Timestamp             int64  `binding:"required" json:"timestamp"`
-}
-
 func (r2p *R2PService) getReceiveAddress(c *gin.Context) {
 	cfg := config.GetConfig()
 	address := c.Param("plmntaddress")
@@ -77,18 +67,7 @@ func (r2p *R2PService) getReceiveAddress(c *gin.Context) {
 	}
 
 	// store receive address - planetmint address pair
-	var convReq ConversionRequest
-	convReq.ConfidentialAddress = confReceiveAddress
-	convReq.UnconfidentialAddress = addressInfo.Unconfidential
-	convReq.PlanetmintAddress = address
-	now := time.Now()
-	convReq.Timestamp = now.Unix()
-
-	convReqtBytes, err := json.Marshal(convReq)
-	if err != nil {
-		log.Fatalf("Error serializing ConversionRequest: %v", err)
-	}
-	err = r2p.db.Put([]byte(confReceiveAddress), convReqtBytes, nil)
+	err = r2p.addConversionRequest(confReceiveAddress, addressInfo.Unconfidential, address)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "storing addresses in DB: " + err.Error()})
 		return
@@ -159,20 +138,6 @@ func (r2p *R2PService) postMintRequest(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "error while minting token: " + err.Error()})
 	}
-}
-
-func (r2p *R2PService) checkMintRequest(liquidTxHash string) (code int, err error) {
-	// check whether mint request already exists
-	mr, err := r2p.pmClient.CheckMintRequest(liquidTxHash)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("error while fetching mint request: %w", err)
-	}
-
-	// return because mint request for txhash is already
-	if mr != nil {
-		return http.StatusConflict, errors.New("already minted")
-	}
-	return
 }
 
 func (r2p *R2PService) checkAddress(url string, txAddress string, descriptor string) (code int, err error) {

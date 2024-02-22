@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sync"
+	"time"
 
 	btcecdsa "github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
@@ -24,10 +26,12 @@ const messageSignatureHeader = "Bitcoin Signed Message:\n"
 var ErrInvalidDescriptor = errors.New("invalid descriptor: input is malformed")
 
 type R2PService struct {
-	router   *gin.Engine
-	pmClient IPlanetmintClient
-	eClient  IElementsClient
-	db       *leveldb.DB
+	router     *gin.Engine
+	pmClient   IPlanetmintClient
+	eClient    IElementsClient
+	db         *leveldb.DB
+	dbMutex    sync.Mutex // Mutex to synchronize write operations
+	tickerList []*time.Ticker
 }
 
 func NewR2PService(router *gin.Engine, pmClient IPlanetmintClient, eClient IElementsClient, db *leveldb.DB) *R2PService {
