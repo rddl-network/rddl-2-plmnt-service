@@ -36,6 +36,7 @@ type R2PService struct {
 
 func NewR2PService(router *gin.Engine, pmClient IPlanetmintClient, eClient IElementsClient, db *leveldb.DB) *R2PService {
 	service := &R2PService{router: router, pmClient: pmClient, eClient: eClient, db: db}
+	gin.SetMode(gin.ReleaseMode)
 	service.configureRouter()
 	service.registerRoutes()
 	service.registerPeriodicTasks()

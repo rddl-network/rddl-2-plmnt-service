@@ -14,7 +14,6 @@ import (
 )
 
 func TestPeriodicCheck(t *testing.T) {
-	t.Parallel()
 	_, err := config.LoadConfig("./")
 	assert.NoError(t, err)
 	router := gin.Default()
@@ -27,7 +26,7 @@ func TestPeriodicCheck(t *testing.T) {
 		db.Close()
 		log.Fatal(err)
 	}
-
+	defer db.Close()
 	r2p := service.NewR2PService(router, pmClientMock, eClientMock, db)
 
 	eClientMock.EXPECT().ListReceivedByAddress(gomock.Any(), gomock.Any()).Return(testutil.ReceivedTxByAddressArray1Tx, nil).AnyTimes()

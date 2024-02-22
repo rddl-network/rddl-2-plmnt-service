@@ -18,8 +18,6 @@ import (
 )
 
 func TestGetReceiveAddressRoute(t *testing.T) {
-	t.Parallel()
-
 	router := gin.Default()
 	ctrl := gomock.NewController(t)
 	pmClientMock := testutil.NewMockIPlanetmintClient(ctrl)
@@ -30,7 +28,7 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 		db.Close()
 		log.Fatal(err)
 	}
-
+	//defer db.Close()
 	_ = service.NewR2PService(router, pmClientMock, eClientMock, db)
 
 	pmClientMock.EXPECT().IsLegitMachine(gomock.Any()).Return(&testutil.IsLegitMachine, nil).AnyTimes()
