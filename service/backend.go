@@ -106,7 +106,7 @@ func (r2p *R2PService) convertArrivedFunds() {
 				log.Printf("delete entry: %s ", string(key))
 				err = r2p.deleteEntry(key)
 				if err != nil {
-					log.Printf("deletion of entry %s failed: ", string(key), err.Error())
+					log.Printf("deletion of entry %s failed: %s", string(key), err.Error())
 				}
 			}
 		}

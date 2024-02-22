@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/planetmint/planetmint-go/utils"
+	"github.com/planetmint/planetmint-go/util"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
 )
 
@@ -60,7 +60,7 @@ func (r2p *R2PService) ExecutePotentialConversion(conversion ConversionRequest) 
 		return
 	}
 
-	convertedAmount := utils.RDDLToken2Uint(txDetails[0].Amount)
+	convertedAmount := util.RDDLToken2Uint(txDetails[0].Amount)
 	plmntAmount := r2p.getConversion(convertedAmount)
 	err = r2p.pmClient.MintPLMNT(conversion.PlanetmintAddress, plmntAmount, liquidTxHash)
 	if err != nil {

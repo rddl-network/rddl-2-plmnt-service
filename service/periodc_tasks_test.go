@@ -34,6 +34,6 @@ func TestPeriodicCheck(t *testing.T) {
 
 	var conversion service.ConversionRequest
 	conversion.ConfidentialAddress = "tlq1qqfz5fmd860877mm7ka7s5a3ryzeajd7xsamedk4cljtlla7tpzx3zux9sk6msuth78rtk7u4whn2nkxe8l9uyy9pcd9semy9m"
-	err = r2p.ExecutePotentialConversion(conversion)
+	_, err = r2p.ExecutePotentialConversion(conversion)
 	assert.NoError(t, err)
 }
