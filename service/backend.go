@@ -8,19 +8,16 @@ import (
 )
 
 type ConversionRequest struct {
-	ConfidentialAddress    string `binding:"required" json:"confidential-address"`
-	NonConfidentialAddress string `binding:"required" json:"unconfidential-address"`
-	PlanetmintAddress      string `binding:"required" json:"planetmint-address"`
-	Timestamp              int64  `binding:"required" json:"timestamp"`
+	ConfidentialAddress string `binding:"required" json:"confidential-address"`
+	PlanetmintAddress   string `binding:"required" json:"planetmint-address"`
+	Timestamp           int64  `binding:"required" json:"timestamp"`
 }
 
-func (r2p *R2PService) addConversionRequest(confidentialAddress string,
-	nonConfidentialAddress string, planetmintAddress string) (err error) {
+func (r2p *R2PService) addConversionRequest(confidentialAddress string, planetmintAddress string) (err error) {
 
 	// store receive address - planetmint address pair
 	var convReq ConversionRequest
 	convReq.ConfidentialAddress = confidentialAddress
-	convReq.NonConfidentialAddress = nonConfidentialAddress
 	convReq.PlanetmintAddress = planetmintAddress
 	now := time.Now()
 	convReq.Timestamp = now.Unix()

@@ -60,14 +60,9 @@ func (r2p *R2PService) getReceiveAddress(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "getting new receive address: " + err.Error()})
 		return
 	}
-	addressInfo, err := r2p.eClient.GetAddressInfo(cfg.GetElementsURL(), []string{confReceiveAddress})
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "getting receive address information: " + err.Error()})
-		return
-	}
 
 	// store receive address - planetmint address pair
-	err = r2p.addConversionRequest(confReceiveAddress, addressInfo.Unconfidential, address)
+	err = r2p.addConversionRequest(confReceiveAddress, address)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "storing addresses in DB: " + err.Error()})
 		return
