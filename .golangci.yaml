@@ -86,8 +86,11 @@ linters-settings:
       use-field-name: true
       rules:
         json: kebab
-  issues:
-    exclude-rules:
-      - path: service/.*test\.go
-        linters:
-          - paralleltest
+issues:
+  exclude-rules:
+    - path: service/.*test\.go
+      linters:
+        - paralleltest
+    - path: service/.*test\.go
+      linters:
+        - tparallel
