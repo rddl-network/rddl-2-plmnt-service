@@ -30,16 +30,18 @@ func (r2p *R2PService) ExecutePotentialConversion(conversion ConversionRequest) 
 	cfg := config.GetConfig()
 	txDetails, err := r2p.eClient.ListReceivedByAddress(cfg.GetElementsURL(),
 		[]string{strconv.Itoa(int(cfg.Confirmations)), "false", "true", conversion.ConfidentialAddress, cfg.AcceptedAsset})
-
+	if err != nil {
+		return
+	}
 	if len(txDetails) != 1 {
-		//create error that there are too much txinformations
+		// create error that there are too much txinformations
 		msg := "error: the received account information contains too much or not enough information"
 		fmt.Println(msg)
 		err = errors.New(msg)
 		return
 	}
 	if len(txDetails[0].TxIDs) != 1 {
-		//create error that there are too much transactions
+		// create error that there are too much transactions
 		msg := "error: the account received more than 1 transaction"
 		fmt.Println(msg)
 		err = errors.New(msg)

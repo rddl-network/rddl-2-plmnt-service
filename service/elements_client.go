@@ -3,7 +3,6 @@ package service
 import (
 	elementsrpc "github.com/rddl-network/elements-rpc"
 	"github.com/rddl-network/elements-rpc/types"
-	elementstypes "github.com/rddl-network/elements-rpc/types"
 )
 
 type IElementsClient interface {
@@ -11,7 +10,7 @@ type IElementsClient interface {
 	DeriveAddresses(url string, params []string) (addresses types.DeriveAddressesResult, err error)
 	GetNewAddress(url string, params []string) (address string, err error)
 	GetAddressInfo(url string, params []string) (info types.GetAddressInfoResult, err error)
-	ListReceivedByAddress(url string, params []string) (receivedTx []elementstypes.ListReceivedByAddressResult, err error)
+	ListReceivedByAddress(url string, params []string) (receivedTx []types.ListReceivedByAddressResult, err error)
 }
 
 type ElementsClient struct{}
@@ -36,6 +35,6 @@ func (ec *ElementsClient) GetAddressInfo(url string, params []string) (info type
 	return elementsrpc.GetAddressInfo(url, params)
 }
 
-func (ec *ElementsClient) ListReceivedByAddress(url string, params []string) (receivedTx []elementstypes.ListReceivedByAddressResult, err error) {
+func (ec *ElementsClient) ListReceivedByAddress(url string, params []string) (receivedTx []types.ListReceivedByAddressResult, err error) {
 	return elementsrpc.ListReceivedByAddress(url, params)
 }

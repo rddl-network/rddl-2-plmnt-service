@@ -38,6 +38,7 @@ func NewR2PService(router *gin.Engine, pmClient IPlanetmintClient, eClient IElem
 	service := &R2PService{router: router, pmClient: pmClient, eClient: eClient, db: db}
 	service.configureRouter()
 	service.registerRoutes()
+	service.registerPeriodicTasks()
 	return service
 }
 

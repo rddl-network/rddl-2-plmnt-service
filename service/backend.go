@@ -14,7 +14,6 @@ type ConversionRequest struct {
 }
 
 func (r2p *R2PService) addConversionRequest(confidentialAddress string, planetmintAddress string) (err error) {
-
 	// store receive address - planetmint address pair
 	var convReq ConversionRequest
 	convReq.ConfidentialAddress = confidentialAddress
@@ -24,7 +23,7 @@ func (r2p *R2PService) addConversionRequest(confidentialAddress string, planetmi
 
 	convReqBytes, err := json.Marshal(convReq)
 	if err != nil {
-		fmt.Errorf("Error serializing ConversionRequest: %v", err)
+		fmt.Printf("Error serializing ConversionRequest: %v", err)
 		return
 	}
 
@@ -32,7 +31,7 @@ func (r2p *R2PService) addConversionRequest(confidentialAddress string, planetmi
 	err = r2p.db.Put([]byte(confidentialAddress), convReqBytes, nil)
 	r2p.dbMutex.Unlock()
 	if err != nil {
-		fmt.Errorf("storing addresses in DB: " + err.Error())
+		fmt.Println("storing addresses in DB: " + err.Error())
 		return
 	}
 	return
@@ -73,13 +72,11 @@ func (r2p *R2PService) cleanupDB() {
 
 	// Check for any errors encountered during iteration
 	if err := iter.Error(); err != nil {
-		log.Fatal(err)
+		fmt.Println(err.Error())
 	}
-
 }
 
 func (r2p *R2PService) convertArrivedFunds() {
-
 	// Create an iterator for the database, nil means the whole database
 	iter := r2p.db.NewIterator(nil, nil)
 	defer iter.Release()
@@ -107,11 +104,9 @@ func (r2p *R2PService) convertArrivedFunds() {
 				}
 			}
 		}
-
 	}
-
 	// Check for any errors found during iteration
 	if err := iter.Error(); err != nil {
-		log.Fatal(err)
+		log.Println(err.Error())
 	}
 }
