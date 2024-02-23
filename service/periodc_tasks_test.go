@@ -14,8 +14,8 @@ import (
 )
 
 func TestPeriodicCheck(t *testing.T) {
-	_, err := config.LoadConfig("./")
-	assert.NoError(t, err)
+	_ = config.GetConfig()
+
 	router := gin.Default()
 	ctrl := gomock.NewController(t)
 	pmClientMock := testutil.NewMockIPlanetmintClient(ctrl)
