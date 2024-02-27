@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/planetmint/planetmint-go/lib"
 	daotypes "github.com/planetmint/planetmint-go/x/dao/types"
+	machinetypes "github.com/planetmint/planetmint-go/x/machine/types"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -17,6 +18,7 @@ import (
 type IPlanetmintClient interface {
 	MintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err error)
 	CheckMintRequest(txhash string) (mintRequest *daotypes.QueryGetMintRequestsByHashResponse, err error)
+	IsLegitMachine(address string) (machineResponse *machinetypes.QueryGetMachineByAddressResponse, err error)
 }
 
 type PlanetmintClient struct{}
@@ -67,6 +69,34 @@ func (pmc *PlanetmintClient) CheckMintRequest(txhash string) (mintRequest *daoty
 
 	if err != nil {
 		return mintRequest, err
+	}
+
+	return
+}
+
+func (pmc *PlanetmintClient) IsLegitMachine(address string) (machineResponse *machinetypes.QueryGetMachineByAddressResponse, err error) {
+	cfg := config.GetConfig()
+	grcpConn, err := grpc.Dial(
+		cfg.PlanetmintRPCHost,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
+	)
+	if err != nil {
+		return machineResponse, err
+	}
+
+	machineClient := machinetypes.NewQueryClient(grcpConn)
+	machineResponse, err = machineClient.GetMachineByAddress(
+		context.Background(),
+		&machinetypes.QueryGetMachineByAddressRequest{Address: address},
+	)
+
+	if err != nil && strings.Contains(err.Error(), codes.NotFound.String()) {
+		return machineResponse, nil
+	}
+
+	if err != nil {
+		return machineResponse, err
 	}
 
 	return

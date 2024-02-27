@@ -8,6 +8,9 @@ import (
 type IElementsClient interface {
 	GetTransaction(url string, params []string) (transactionResult types.GetTransactionResult, err error)
 	DeriveAddresses(url string, params []string) (addresses types.DeriveAddressesResult, err error)
+	GetNewAddress(url string, params []string) (address string, err error)
+	GetAddressInfo(url string, params []string) (info types.GetAddressInfoResult, err error)
+	ListReceivedByAddress(url string, params []string) (receivedTx []types.ListReceivedByAddressResult, err error)
 }
 
 type ElementsClient struct{}
@@ -22,4 +25,16 @@ func (ec *ElementsClient) GetTransaction(url string, params []string) (transacti
 
 func (ec *ElementsClient) DeriveAddresses(url string, params []string) (addresses types.DeriveAddressesResult, err error) {
 	return elementsrpc.DeriveAddresses(url, params)
+}
+
+func (ec *ElementsClient) GetNewAddress(url string, params []string) (address string, err error) {
+	return elementsrpc.GetNewAddress(url, params)
+}
+
+func (ec *ElementsClient) GetAddressInfo(url string, params []string) (info types.GetAddressInfoResult, err error) {
+	return elementsrpc.GetAddressInfo(url, params)
+}
+
+func (ec *ElementsClient) ListReceivedByAddress(url string, params []string) (receivedTx []types.ListReceivedByAddressResult, err error) {
+	return elementsrpc.ListReceivedByAddress(url, params)
 }

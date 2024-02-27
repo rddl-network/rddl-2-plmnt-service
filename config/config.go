@@ -1,6 +1,9 @@
 package config
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 const DefaultConfigTemplate = `
 planetmint-address="{{ .PlanetmintAddress }}"
@@ -58,4 +61,9 @@ func GetConfig() *Config {
 		config = DefaultConfig()
 	})
 	return config
+}
+
+func (c *Config) GetElementsURL() string {
+	url := fmt.Sprintf("http://%s:%s@%s/wallet/%s", c.RPCUser, c.RPCPass, c.RPCHost, c.Wallet)
+	return url
 }
