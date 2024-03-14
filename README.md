@@ -8,6 +8,31 @@ This service receives `GET requests` on `http(s)://localhost:8080/receiveaddress
 
 Where the `beneficiary` is the receiving address on Planetmint, `liquid-address` is a receive address on Liquid being monitored for the next 12 hours. The incoming amount of RDDL tokens will be converted into PLMNT tokens that are minted and released to the `planetmint-beneficiary' address.
 
+## Mechanics
+
+```mermaid
+sequenceDiagram
+    participant MachineOperator
+    participant Wallet 
+    participant r2p-Service
+    participant Service-Wallet
+    participant Planetmint
+    MachineOperator->>r2p-Service: GET /receiveaddress/<plmntaddress>
+    r2p-Service->>Service-Wallet: get receive address
+    Service-Wallet->>r2p-Service: receive address
+    r2p-Service->>r2p-Service: register receive address for monitoring
+    r2p-Service->>MachineOperator: return liquid address
+    loop Check for incoming transactions
+        r2p-Service->>Service-Wallet: ListReceivedByAddress for all registered addresses
+        Service-Wallet->>r2p-Service: all transactions
+        r2p-Service->>r2p-Service: compute conversion (RDDL -> PLMNT)
+        r2p-Service->>Planetmint: send PLMNT mint request for the computed amount of PLMNT
+        r2p-Service->>r2p-Service: define receive address as DONE
+    end
+    loop Cleanup - every 2h
+        r2p-Service->>r2p-Service: removed all registered receive addresses older than 12h
+    end
+```
 
 
 ## Execution
