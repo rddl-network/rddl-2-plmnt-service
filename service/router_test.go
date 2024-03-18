@@ -41,14 +41,14 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 	tests := []struct {
 		desc              string
 		planetmintAddress string
-		resBody           service.AddressBody
+		resBody           service.ReceiveAddressResponse
 		code              int
 		errorMsg          string
 	}{
 		{
 			desc:              "valid request",
 			planetmintAddress: testutil.PlanetmintAddress,
-			resBody: service.AddressBody{
+			resBody: service.ReceiveAddressResponse{
 				LiquidAddress:         testutil.ConfidentialAddr,
 				PlanetmintBeneficiary: testutil.PlanetmintAddress,
 			},
@@ -58,14 +58,14 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 		{
 			desc:              "missing request fields",
 			planetmintAddress: "",
-			resBody:           service.AddressBody{},
+			resBody:           service.ReceiveAddressResponse{},
 			code:              404,
 			errorMsg:          "404 page not found",
 		},
 		{
 			desc:              "Invalid planetmint machine address",
 			planetmintAddress: "plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx",
-			resBody:           service.AddressBody{},
+			resBody:           service.ReceiveAddressResponse{},
 			code:              400,
 			errorMsg:          "{\"error:\":\"different machine resolved: plmnt1683t0us0r85840nsepx6jrk2kjxw7zrcnkf0rp instead of plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx\"}",
 		},
@@ -82,7 +82,7 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 			if w.Code != 200 {
 				assert.Equal(t, tc.errorMsg, w.Body.String())
 			} else {
-				var result service.AddressBody
+				var result service.ReceiveAddressResponse
 				err = json.Unmarshal(w.Body.Bytes(), &result)
 				assert.NoError(t, err)
 				assert.Equal(t, tc.resBody, result)
