@@ -8,6 +8,6 @@ jobs:
     strategy:
       matrix:
         directory: ['./', 'client']
-    uses: rddl-network/github-actions/.github/workflows/audit.yaml@main
+    uses: rddl-network/github-actions/.github/workflows/audit.yaml@add-wd-variable
     with:
       working-directory: ${{ matrix.directory }}
