@@ -13,6 +13,8 @@ import (
 )
 
 func TestGetReceiveAddress(t *testing.T) {
+	t.Parallel()
+
 	expectedRes := service.ReceiveAddressResponse{
 		LiquidAddress:         "liquidAddress",
 		PlanetmintBeneficiary: "plmntAddress",
@@ -26,7 +28,8 @@ func TestGetReceiveAddress(t *testing.T) {
 		assert.NoError(t, err)
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(bytes)
+		_, err = w.Write(bytes)
+		assert.NoError(t, err)
 	}))
 	defer mockServer.Close()
 
