@@ -10,4 +10,4 @@ jobs:
         directory: ['./', 'client']
     uses: rddl-network/github-actions/.github/workflows/audit.yaml@add-wd-variable
     with:
-      working-directory: ${{ matrix.directory }}
+      working_directory: ${{ matrix.directory }}
