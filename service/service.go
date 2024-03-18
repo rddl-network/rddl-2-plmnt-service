@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -10,12 +9,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/syndtr/goleveldb/leveldb"
 )
-
-// Text used to signify that a signed message follows and to prevent
-// inadvertently signing a transaction.
-const messageSignatureHeader = "Bitcoin Signed Message:\n"
-
-var ErrInvalidDescriptor = errors.New("invalid descriptor: input is malformed")
 
 type R2PService struct {
 	router     *gin.Engine
