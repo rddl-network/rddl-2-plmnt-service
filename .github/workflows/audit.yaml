@@ -5,4 +5,7 @@ on: [push]
 
 jobs:
   audit:
+    strategy:
+      matrix:
+        directory: [./, .client]
     uses: rddl-network/github-actions/.github/workflows/audit.yaml@main
