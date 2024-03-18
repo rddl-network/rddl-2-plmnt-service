@@ -7,5 +7,7 @@ jobs:
   audit:
     strategy:
       matrix:
-        directory: [./, .client]
+        directory: ['./', 'client']
     uses: rddl-network/github-actions/.github/workflows/audit.yaml@main
+    with:
+      working-directory: ${{ matrix.directory }}
