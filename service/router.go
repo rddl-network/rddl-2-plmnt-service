@@ -7,18 +7,6 @@ import (
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
 )
 
-type Conversion struct {
-	Beneficiary  string `binding:"required" json:"beneficiary"`
-	LiquidTxHash string `binding:"required" json:"liquid-tx-hash"`
-	Descriptor   string `binding:"required" json:"descriptor"`
-}
-
-// Request body for REST Endpoint
-type MintRequestBody struct {
-	Conversion Conversion `binding:"required" json:"conversion"`
-	Signature  string     `binding:"required" json:"signature"`
-}
-
 func (r2p *R2PService) configureRouter() {
 	r2p.router.Use(gin.Logger())
 	r2p.router.Use(gin.Recovery())
@@ -26,11 +14,6 @@ func (r2p *R2PService) configureRouter() {
 
 func (r2p *R2PService) registerRoutes() {
 	r2p.router.GET("/receiveaddress/:plmntaddress", r2p.getReceiveAddress)
-}
-
-type AddressBody struct {
-	LiquidAddress         string `binding:"required" json:"liquid-address"`
-	PlanetmintBeneficiary string `binding:"required" json:"planetmint-beneficiary"`
 }
 
 func (r2p *R2PService) getReceiveAddress(c *gin.Context) {
@@ -64,7 +47,7 @@ func (r2p *R2PService) getReceiveAddress(c *gin.Context) {
 		return
 	}
 
-	var resBody AddressBody
+	var resBody ReceiveAddressResponse
 	resBody.LiquidAddress = confReceiveAddress
 	resBody.PlanetmintBeneficiary = address
 	c.JSON(http.StatusOK, resBody)
