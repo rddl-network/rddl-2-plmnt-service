@@ -20,14 +20,14 @@ func (r2p *R2PService) getReceiveAddress(c *gin.Context) {
 	cfg := config.GetConfig()
 	address := c.Param("plmntaddress")
 
-	// is legit machine address?
-	resp, err := r2p.pmClient.IsLegitMachine(address)
+	// is legit planetmint address?
+	valid, err := VerifyAddress(address)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if resp.GetMachine().Address != address {
-		c.JSON(http.StatusBadRequest, gin.H{"error:": "different machine resolved: " + resp.GetMachine().Address + " instead of " + address})
+	if !valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid planetmint address"})
 		return
 	}
 

@@ -5,7 +5,9 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
+
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/planetmint/planetmint-go/lib"
 	daotypes "github.com/planetmint/planetmint-go/x/dao/types"
 	machinetypes "github.com/planetmint/planetmint-go/x/machine/types"
@@ -35,7 +37,7 @@ func (pmc *PlanetmintClient) MintPLMNT(beneficiary string, amount uint64, liquid
 		LiquidTxHash: liquidTxHash,
 	}
 
-	addr := sdk.MustAccAddressFromBech32(cfg.PlanetmintAddress)
+	addr := sdktypes.MustAccAddressFromBech32(cfg.PlanetmintAddress)
 	msg := daotypes.NewMsgMintToken(cfg.PlanetmintAddress, &mintRequest)
 
 	_, err = lib.BroadcastTxWithFileLock(addr, msg)
@@ -99,5 +101,21 @@ func (pmc *PlanetmintClient) IsLegitMachine(address string) (machineResponse *ma
 		return machineResponse, err
 	}
 
+	return
+}
+
+// verifyAddress verifies the integrity and prefix of a given address.
+func VerifyAddress(address string) (valid bool, err error) {
+
+	// Attempt to decode the address
+	_, err = types.AccAddressFromBech32(address)
+	if err != nil {
+		return
+	}
+	if !strings.Contains(address, "plmnt") {
+		valid = false
+		return
+	}
+	valid = true
 	return
 }

@@ -87,3 +87,24 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 		})
 	}
 }
+
+func TestPlmntAddress(t *testing.T) {
+	for _, testcase := range []struct {
+		address string
+		valid   bool
+	}{
+		{"plmnt000000000000000000000000000000000000000000000000000000000000", false},
+		{"plmnt10mq5nj8jhh27z7ejnz2ql3nh0qhzjnfvy50877", true},
+		{"plmnt10mq5nj8jhh27z7ejnz2ql3nh0qhzjnfvy5877", false},
+		{"plmnt10mq5nj8jhh27z7ejnz2ql3nh0qhzjnfvyx5877", false},
+		{"cosmos140e7u946a2nqqkvcnjpjm83d0ynsqem8g840tx", false},
+	} {
+		valid, err := service.VerifyAddress(testcase.address)
+		if testcase.valid {
+			assert.NoError(t, err)
+			assert.True(t, valid)
+		} else {
+			assert.False(t, valid)
+		}
+	}
+}
