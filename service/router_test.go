@@ -33,10 +33,7 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 
 	pmClientMock.EXPECT().IsLegitMachine(gomock.Any()).Return(&testutil.IsLegitMachine, nil).AnyTimes()
 
-	eClientMock.EXPECT().GetTransaction(gomock.Any(), gomock.Any()).Return(testutil.GetTransactionResult, nil).AnyTimes()
-	eClientMock.EXPECT().DeriveAddresses(gomock.Any(), gomock.Any()).Return(testutil.DeriveAddressesResult, nil).AnyTimes()
 	eClientMock.EXPECT().GetNewAddress(gomock.Any(), gomock.Any()).Return(testutil.ConfidentialAddr, nil).AnyTimes()
-	eClientMock.EXPECT().GetAddressInfo(gomock.Any(), gomock.Any()).Return(testutil.AddressInfo, nil).AnyTimes()
 
 	tests := []struct {
 		desc              string
