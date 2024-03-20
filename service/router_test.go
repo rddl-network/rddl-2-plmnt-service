@@ -58,11 +58,11 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 			errorMsg:          "404 page not found",
 		},
 		{
-			desc:              "Invalid planetmint machine address",
-			planetmintAddress: "plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx",
+			desc:              "Invalid planetmint address",
+			planetmintAddress: "plmnt1w5dww355ck3u4w4hjxcx",
 			resBody:           service.ReceiveAddressResponse{},
 			code:              400,
-			errorMsg:          "{\"error:\":\"different machine resolved: plmnt1683t0us0r85840nsepx6jrk2kjxw7zrcnkf0rp instead of plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx\"}",
+			errorMsg:          "{\"error\":\"decoding bech32 failed: invalid checksum (expected j98ean got 4hjxcx)\"}",
 		},
 	}
 
