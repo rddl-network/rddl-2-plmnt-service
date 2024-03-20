@@ -11,9 +11,9 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/planetmint/planetmint-go v0.6.5
 	github.com/planetmint/planetmint-go/lib v0.2.1
-	github.com/rddl-network/elements-rpc v0.5.6
+	github.com/rddl-network/elements-rpc v1.0.0
 	github.com/spf13/viper v1.16.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
 	google.golang.org/grpc v1.56.3
 )
