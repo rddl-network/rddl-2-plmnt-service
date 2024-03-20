@@ -31,8 +31,6 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 	// defer db.Close()
 	_ = service.NewR2PService(router, pmClientMock, eClientMock, db)
 
-	pmClientMock.EXPECT().IsLegitMachine(gomock.Any()).Return(&testutil.IsLegitMachine, nil).AnyTimes()
-
 	eClientMock.EXPECT().GetNewAddress(gomock.Any(), gomock.Any()).Return(testutil.ConfidentialAddr, nil).AnyTimes()
 
 	tests := []struct {
