@@ -31,8 +31,6 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 	// defer db.Close()
 	_ = service.NewR2PService(router, pmClientMock, eClientMock, db)
 
-	pmClientMock.EXPECT().IsLegitMachine(gomock.Any()).Return(&testutil.IsLegitMachine, nil).AnyTimes()
-
 	eClientMock.EXPECT().GetNewAddress(gomock.Any(), gomock.Any()).Return(testutil.ConfidentialAddr, nil).AnyTimes()
 
 	tests := []struct {
@@ -60,11 +58,11 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 			errorMsg:          "404 page not found",
 		},
 		{
-			desc:              "Invalid planetmint machine address",
-			planetmintAddress: "plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx",
+			desc:              "Invalid planetmint address",
+			planetmintAddress: "plmnt1w5dww355ck3u4w4hjxcx",
 			resBody:           service.ReceiveAddressResponse{},
 			code:              400,
-			errorMsg:          "{\"error:\":\"different machine resolved: plmnt1683t0us0r85840nsepx6jrk2kjxw7zrcnkf0rp instead of plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx\"}",
+			errorMsg:          "{\"error\":\"decoding bech32 failed: invalid checksum (expected j98ean got 4hjxcx)\"}",
 		},
 	}
 
@@ -85,5 +83,26 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 				assert.Equal(t, tc.resBody, result)
 			}
 		})
+	}
+}
+
+func TestPlmntAddress(t *testing.T) {
+	for _, testcase := range []struct {
+		address string
+		valid   bool
+	}{
+		{"plmnt000000000000000000000000000000000000000000000000000000000000", false},
+		{"plmnt10mq5nj8jhh27z7ejnz2ql3nh0qhzjnfvy50877", true},
+		{"plmnt10mq5nj8jhh27z7ejnz2ql3nh0qhzjnfvy5877", false},
+		{"plmnt10mq5nj8jhh27z7ejnz2ql3nh0qhzjnfvyx5877", false},
+		{"cosmos140e7u946a2nqqkvcnjpjm83d0ynsqem8g840tx", false},
+	} {
+		valid, err := service.VerifyAddress(testcase.address)
+		if testcase.valid {
+			assert.NoError(t, err)
+			assert.True(t, valid)
+		} else {
+			assert.False(t, valid)
+		}
 	}
 }
