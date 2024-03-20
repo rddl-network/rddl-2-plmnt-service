@@ -29,7 +29,7 @@ func (r2p *R2PService) registerPeriodicTasks() {
 func (r2p *R2PService) ExecutePotentialConversion(conversion ConversionRequest) (deleteEntry bool, err error) {
 	cfg := config.GetConfig()
 	txDetails, err := r2p.eClient.ListReceivedByAddress(cfg.GetElementsURL(),
-		[]string{strconv.Itoa(int(cfg.Confirmations)), "false", "true", conversion.ConfidentialAddress, cfg.AcceptedAsset})
+		[]string{strconv.Itoa(int(cfg.Confirmations)), "false", "true", `"` + conversion.ConfidentialAddress + `"`, `"` + cfg.AcceptedAsset + `"`})
 	if err != nil {
 		return
 	}
