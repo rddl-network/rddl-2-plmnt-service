@@ -20,6 +20,10 @@ on:
         description: "Files"
         required: true
         default: "rddl-2-plmnt-service"
+      directory:
+        description: "Directory"
+        required: false
+        type: string
 
 jobs:
   release:
@@ -28,3 +32,4 @@ jobs:
       tag: ${{ github.event.inputs.tag }}
       prerelease: ${{ fromJSON(github.event.inputs.prerelease) }}
       files: ${{ github.event.inputs.files }}
+      directory: ${{ github.event.inputs.directory }}
