@@ -53,7 +53,7 @@ func (pmc *PlanetmintClient) CheckMintRequest(txhash string) (mintRequest *daoty
 		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
 	)
 	if err != nil {
-		return mintRequest, err
+		return
 	}
 
 	daoClient := daotypes.NewQueryClient(grcpConn)
@@ -64,10 +64,9 @@ func (pmc *PlanetmintClient) CheckMintRequest(txhash string) (mintRequest *daoty
 
 	if err != nil {
 		if strings.Contains(err.Error(), codes.NotFound.String()) {
-			return mintRequest, nil
-		} else {
-			return mintRequest, err
+			err = nil
 		}
+		return
 	}
 
 	return
