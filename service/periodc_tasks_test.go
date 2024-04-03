@@ -40,7 +40,7 @@ func TestPeriodicCheck(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestShifting(t *testing.T) {
+func TestConversion(t *testing.T) {
 
 	convertedAmount := util.RDDLToken2Uint(570330.47944743)
 	plmntAmount := service.GetConversion(convertedAmount)
