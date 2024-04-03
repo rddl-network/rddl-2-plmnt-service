@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	"github.com/planetmint/planetmint-go/util"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
 	"github.com/rddl-network/rddl-2-plmnt-service/service"
 	"github.com/rddl-network/rddl-2-plmnt-service/testutil"
@@ -37,4 +38,11 @@ func TestPeriodicCheck(t *testing.T) {
 	conversion.ConfidentialAddress = "tlq1qqfz5fmd860877mm7ka7s5a3ryzeajd7xsamedk4cljtlla7tpzx3zux9sk6msuth78rtk7u4whn2nkxe8l9uyy9pcd9semy9m"
 	_, err = r2p.ExecutePotentialConversion(conversion)
 	assert.NoError(t, err)
+}
+
+func TestShifting(t *testing.T) {
+
+	convertedAmount := util.RDDLToken2Uint(570330.47944743)
+	plmntAmount := service.GetConversion(convertedAmount)
+	assert.Equal(t, uint64(57033047), plmntAmount)
 }

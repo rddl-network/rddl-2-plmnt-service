@@ -63,7 +63,7 @@ func (r2p *R2PService) ExecutePotentialConversion(conversion ConversionRequest) 
 	}
 
 	convertedAmount := util.RDDLToken2Uint(txDetails[0].Amount)
-	plmntAmount := r2p.getConversion(convertedAmount)
+	plmntAmount := GetConversion(convertedAmount)
 	err = r2p.pmClient.MintPLMNT(conversion.PlanetmintAddress, plmntAmount, liquidTxHash)
 	if err != nil {
 		msg := "error while minting token: " + err.Error()

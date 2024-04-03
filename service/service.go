@@ -35,7 +35,15 @@ func (r2p *R2PService) Run(config *viper.Viper) (err error) {
 }
 
 // Constant rate to be replaced with conversion rate monitor
-func (r2p *R2PService) getConversion(rddl uint64) (plmnt uint64) {
+func GetConversion(rddl uint64) (plmnt uint64) {
 	conversionRate := uint64(100)
-	return rddl * conversionRate
+	plmntAmount := rddl * conversionRate
+	plmnt = plmntAmount / 100000000 // TODO: to be replaced by util.Factor
+	return
+}
+
+// Constant rate to be replaced with conversion rate monitor
+func ShiftValue(plmnt uint64, digitsToSkip int) uint64 {
+	plmntShifted := plmnt >> digitsToSkip
+	return plmntShifted
 }
