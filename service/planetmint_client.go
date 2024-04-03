@@ -62,12 +62,12 @@ func (pmc *PlanetmintClient) CheckMintRequest(txhash string) (mintRequest *daoty
 		&daotypes.QueryGetMintRequestsByHashRequest{Hash: txhash},
 	)
 
-	if strings.Contains(err.Error(), codes.NotFound.String()) {
-		return mintRequest, nil
-	}
-
 	if err != nil {
-		return mintRequest, err
+		if strings.Contains(err.Error(), codes.NotFound.String()) {
+			return mintRequest, nil
+		} else {
+			return mintRequest, err
+		}
 	}
 
 	return
