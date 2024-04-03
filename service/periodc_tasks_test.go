@@ -41,7 +41,6 @@ func TestPeriodicCheck(t *testing.T) {
 }
 
 func TestConversion(t *testing.T) {
-
 	convertedAmount := util.RDDLToken2Uint(570330.47944743)
 	plmntAmount := service.GetConversion(convertedAmount)
 	assert.Equal(t, uint64(57033047), plmntAmount)
