@@ -34,8 +34,13 @@ func (r2p *R2PService) Run(config *viper.Viper) (err error) {
 	return r2p.router.Run(fmt.Sprintf("%s:%s", serviceBind, servicePort))
 }
 
-// Constant rate to be replaced with conversion rate monitor
-func (r2p *R2PService) getConversion(rddl uint64) (plmnt uint64) {
-	conversionRate := uint64(100)
-	return rddl * conversionRate
+// TODO: Constant rate to be replaced with conversion rate monitor
+// Cut away the PLMNT fractions as planetmint only works with natural numbers
+func GetConversion(rddl uint64) (plmnt uint64) {
+	conversionRate := uint64(100) // apply conversion rate
+	plmntAmount := rddl * conversionRate
+	// TODO: 100000000 to be replaced by util.Factor
+	plmnt = plmntAmount / 100000000
+
+	return
 }
