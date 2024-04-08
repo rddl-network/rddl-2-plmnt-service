@@ -94,7 +94,7 @@ func (r2p *R2PService) checkMintRequest(liquidTxHash string) (code int, err erro
 
 	// return because mint request for txhash is already
 	if mr != nil {
-		r2p.logger.Info("msg", "error while fetching mint request: "+err.Error())
+		r2p.logger.Info("msg", "error while fetching mint request: txid "+liquidTxHash+" got minted before ("+mr.String()+")")
 		code = http.StatusConflict
 		return
 	}
