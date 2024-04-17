@@ -1,6 +1,6 @@
 module github.com/rddl-network/rddl-2-plmnt-service/client
 
-go 1.21
+go 1.21.5
 
 require github.com/rddl-network/rddl-2-plmnt-service v0.2.0
 

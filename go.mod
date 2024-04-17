@@ -1,6 +1,6 @@
 module github.com/rddl-network/rddl-2-plmnt-service
 
-go 1.19
+go 1.21.5
 
 require (
 	github.com/btcsuite/btcd v0.23.2
@@ -153,6 +153,7 @@ require (
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/rakyll/statik v0.1.7 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
+	github.com/rddl-network/go-logger v0.0.2 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect
 	github.com/rs/zerolog v1.30.0 // indirect

@@ -4,17 +4,19 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"log"
+	stdlog "log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	log "github.com/rddl-network/go-logger"
 	"github.com/rddl-network/rddl-2-plmnt-service/service"
 	"github.com/rddl-network/rddl-2-plmnt-service/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 )
 
 func TestGetReceiveAddressRoute(t *testing.T) {
@@ -23,13 +25,12 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 	pmClientMock := testutil.NewMockIPlanetmintClient(ctrl)
 	eClientMock := testutil.NewMockIElementsClient(ctrl)
 
-	db, err := leveldb.OpenFile("./conversions.db", nil)
+	db, err := leveldb.Open(storage.NewMemStorage(), nil)
 	if err != nil {
 		db.Close()
-		log.Fatal(err)
+		stdlog.Fatal(err)
 	}
-	// defer db.Close()
-	_ = service.NewR2PService(router, pmClientMock, eClientMock, db)
+	_ = service.NewR2PService(router, pmClientMock, eClientMock, db, log.GetLogger(log.DEBUG))
 
 	eClientMock.EXPECT().GetNewAddress(gomock.Any(), gomock.Any()).Return(testutil.ConfidentialAddr, nil).AnyTimes()
 

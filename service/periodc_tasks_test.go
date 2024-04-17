@@ -1,17 +1,19 @@
 package service_test
 
 import (
-	"log"
+	stdlog "log"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/planetmint/planetmint-go/util"
+	log "github.com/rddl-network/go-logger"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
 	"github.com/rddl-network/rddl-2-plmnt-service/service"
 	"github.com/rddl-network/rddl-2-plmnt-service/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 )
 
 func TestPeriodicCheck(t *testing.T) {
@@ -22,13 +24,13 @@ func TestPeriodicCheck(t *testing.T) {
 	pmClientMock := testutil.NewMockIPlanetmintClient(ctrl)
 	eClientMock := testutil.NewMockIElementsClient(ctrl)
 
-	db, err := leveldb.OpenFile("./conversions.db", nil)
+	db, err := leveldb.Open(storage.NewMemStorage(), nil)
 	if err != nil {
 		db.Close()
-		log.Fatal(err)
+		stdlog.Fatal(err)
 	}
 	defer db.Close()
-	r2p := service.NewR2PService(router, pmClientMock, eClientMock, db)
+	r2p := service.NewR2PService(router, pmClientMock, eClientMock, db, log.GetLogger(log.DEBUG))
 
 	eClientMock.EXPECT().ListReceivedByAddress(gomock.Any(), gomock.Any()).Return(testutil.ReceivedTxByAddressArray1Tx, nil).AnyTimes()
 	pmClientMock.EXPECT().CheckMintRequest(gomock.Any()).Return(nil, nil).AnyTimes()
