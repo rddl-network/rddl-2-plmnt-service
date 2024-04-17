@@ -4,6 +4,8 @@ go 1.21.5
 
 require github.com/rddl-network/rddl-2-plmnt-service v0.2.0
 
+require github.com/rddl-network/go-logger v0.0.2 // indirect
+
 require (
 	cosmossdk.io/api v0.3.1 // indirect
 	cosmossdk.io/core v0.5.1 // indirect
