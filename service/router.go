@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
+	"github.com/rddl-network/rddl-2-plmnt-service/types"
 )
 
 func (r2p *R2PService) configureRouter() {
@@ -47,7 +48,7 @@ func (r2p *R2PService) getReceiveAddress(c *gin.Context) {
 		return
 	}
 
-	var resBody ReceiveAddressResponse
+	var resBody types.ReceiveAddressResponse
 	resBody.LiquidAddress = confReceiveAddress
 	resBody.PlanetmintBeneficiary = address
 	c.JSON(http.StatusOK, resBody)
