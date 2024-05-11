@@ -14,6 +14,7 @@ import (
 	log "github.com/rddl-network/go-logger"
 	"github.com/rddl-network/rddl-2-plmnt-service/service"
 	"github.com/rddl-network/rddl-2-plmnt-service/testutil"
+	"github.com/rddl-network/rddl-2-plmnt-service/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -37,14 +38,14 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 	tests := []struct {
 		desc              string
 		planetmintAddress string
-		resBody           service.ReceiveAddressResponse
+		resBody           types.ReceiveAddressResponse
 		code              int
 		errorMsg          string
 	}{
 		{
 			desc:              "valid request",
 			planetmintAddress: testutil.PlanetmintAddress,
-			resBody: service.ReceiveAddressResponse{
+			resBody: types.ReceiveAddressResponse{
 				LiquidAddress:         testutil.ConfidentialAddr,
 				PlanetmintBeneficiary: testutil.PlanetmintAddress,
 			},
@@ -54,14 +55,14 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 		{
 			desc:              "missing request fields",
 			planetmintAddress: "",
-			resBody:           service.ReceiveAddressResponse{},
+			resBody:           types.ReceiveAddressResponse{},
 			code:              404,
 			errorMsg:          "404 page not found",
 		},
 		{
 			desc:              "Invalid planetmint address",
 			planetmintAddress: "plmnt1w5dww355ck3u4w4hjxcx",
-			resBody:           service.ReceiveAddressResponse{},
+			resBody:           types.ReceiveAddressResponse{},
 			code:              400,
 			errorMsg:          "{\"error\":\"decoding bech32 failed: invalid checksum (expected j98ean got 4hjxcx)\"}",
 		},
@@ -78,7 +79,7 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 			if w.Code != 200 {
 				assert.Equal(t, tc.errorMsg, w.Body.String())
 			} else {
-				var result service.ReceiveAddressResponse
+				var result types.ReceiveAddressResponse
 				err = json.Unmarshal(w.Body.Bytes(), &result)
 				assert.NoError(t, err)
 				assert.Equal(t, tc.resBody, result)

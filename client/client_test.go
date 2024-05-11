@@ -8,14 +8,14 @@ import (
 	"testing"
 
 	"github.com/rddl-network/rddl-2-plmnt-service/client"
-	"github.com/rddl-network/rddl-2-plmnt-service/service"
+	"github.com/rddl-network/rddl-2-plmnt-service/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetReceiveAddress(t *testing.T) {
 	t.Parallel()
 
-	expectedRes := service.ReceiveAddressResponse{
+	expectedRes := types.ReceiveAddressResponse{
 		LiquidAddress:         "liquidAddress",
 		PlanetmintBeneficiary: "plmntAddress",
 	}

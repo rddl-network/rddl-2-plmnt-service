@@ -1,4 +1,4 @@
-package service
+package types
 
 type ReceiveAddressResponse struct {
 	LiquidAddress         string `binding:"required" json:"liquid-address"`
