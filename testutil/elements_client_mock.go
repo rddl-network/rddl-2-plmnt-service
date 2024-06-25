@@ -34,36 +34,6 @@ func (m *MockIElementsClient) EXPECT() *MockIElementsClientMockRecorder {
 	return m.recorder
 }
 
-// DeriveAddresses mocks base method.
-func (m *MockIElementsClient) DeriveAddresses(url string, params []string) (types.DeriveAddressesResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeriveAddresses", url, params)
-	ret0, _ := ret[0].(types.DeriveAddressesResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DeriveAddresses indicates an expected call of DeriveAddresses.
-func (mr *MockIElementsClientMockRecorder) DeriveAddresses(url, params interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeriveAddresses", reflect.TypeOf((*MockIElementsClient)(nil).DeriveAddresses), url, params)
-}
-
-// GetAddressInfo mocks base method.
-func (m *MockIElementsClient) GetAddressInfo(url string, params []string) (types.GetAddressInfoResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAddressInfo", url, params)
-	ret0, _ := ret[0].(types.GetAddressInfoResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAddressInfo indicates an expected call of GetAddressInfo.
-func (mr *MockIElementsClientMockRecorder) GetAddressInfo(url, params interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddressInfo", reflect.TypeOf((*MockIElementsClient)(nil).GetAddressInfo), url, params)
-}
-
 // GetNewAddress mocks base method.
 func (m *MockIElementsClient) GetNewAddress(url string, params []string) (string, error) {
 	m.ctrl.T.Helper()
@@ -77,21 +47,6 @@ func (m *MockIElementsClient) GetNewAddress(url string, params []string) (string
 func (mr *MockIElementsClientMockRecorder) GetNewAddress(url, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNewAddress", reflect.TypeOf((*MockIElementsClient)(nil).GetNewAddress), url, params)
-}
-
-// GetTransaction mocks base method.
-func (m *MockIElementsClient) GetTransaction(url string, params []string) (types.GetTransactionResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTransaction", url, params)
-	ret0, _ := ret[0].(types.GetTransactionResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetTransaction indicates an expected call of GetTransaction.
-func (mr *MockIElementsClientMockRecorder) GetTransaction(url, params interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransaction", reflect.TypeOf((*MockIElementsClient)(nil).GetTransaction), url, params)
 }
 
 // ListReceivedByAddress mocks base method.

@@ -55,6 +55,7 @@ service-bind = "localhost"
 accepted-asset = "7add40beb27df701e02ee85089c5bc0021bc813823fedb5f1dcb5debda7f3da9"
 wallet = "rddl2plmnt"
 confirmations = 10
+log-level = debug
 ```
 
 The defaults can be found at ```./config/config.go```.

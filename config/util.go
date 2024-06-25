@@ -31,6 +31,7 @@ func LoadConfig(path string) (v *viper.Viper, err error) {
 		cfg.AcceptedAsset = v.GetString("accepted-asset")
 		cfg.Wallet = v.GetString("wallet")
 		cfg.Confirmations = v.GetInt64("confirmations")
+		cfg.LogLevel = v.GetString("log-level")
 		return
 	}
 	log.Println("no config file found.")

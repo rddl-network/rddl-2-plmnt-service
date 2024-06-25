@@ -17,6 +17,7 @@ service-port={{ .ServicePort }}
 accepted-asset="{{ .AcceptedAsset }}"
 wallet="{{ .Wallet }}"
 confirmations={{ .Confirmations }}
+log-level="{{ .LogLevel }}"
 `
 
 type Config struct {
@@ -31,6 +32,7 @@ type Config struct {
 	AcceptedAsset     string `mapstructure:"accepted-asset"`
 	Wallet            string `mapstructure:"wallet"`
 	Confirmations     int64  `mapstructure:"confirmations"`
+	LogLevel          string `mapstructure:"log-level"`
 }
 
 // global singleton
@@ -53,6 +55,7 @@ func DefaultConfig() *Config {
 		AcceptedAsset:     "7add40beb27df701e02ee85089c5bc0021bc813823fedb5f1dcb5debda7f3da9",
 		Wallet:            "rddl2plmnt",
 		Confirmations:     10,
+		LogLevel:          "info",
 	}
 }
 
