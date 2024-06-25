@@ -7,11 +7,11 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/rddl-network/rddl-2-plmnt-service/service"
+	"github.com/rddl-network/rddl-2-plmnt-service/types"
 )
 
 type IR2PClient interface {
-	GetReceiveAddress(ctx context.Context, plmntAddress string) (res service.ReceiveAddressResponse, err error)
+	GetReceiveAddress(ctx context.Context, plmntAddress string) (res types.ReceiveAddressResponse, err error)
 }
 
 type R2PClient struct {
@@ -29,7 +29,7 @@ func NewR2PClient(baseURL string, client *http.Client) *R2PClient {
 	}
 }
 
-func (r2pc *R2PClient) GetReceiveAddress(ctx context.Context, plmntAddress string) (res service.ReceiveAddressResponse, err error) {
+func (r2pc *R2PClient) GetReceiveAddress(ctx context.Context, plmntAddress string) (res types.ReceiveAddressResponse, err error) {
 	err = r2pc.doRequest(ctx, http.MethodGet, r2pc.baseURL+"/receiveaddress/"+plmntAddress, nil, &res)
 	return
 }

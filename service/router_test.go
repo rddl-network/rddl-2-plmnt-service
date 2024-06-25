@@ -4,17 +4,20 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"log"
+	stdlog "log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	log "github.com/rddl-network/go-logger"
 	"github.com/rddl-network/rddl-2-plmnt-service/service"
 	"github.com/rddl-network/rddl-2-plmnt-service/testutil"
+	"github.com/rddl-network/rddl-2-plmnt-service/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 )
 
 func TestGetReceiveAddressRoute(t *testing.T) {
@@ -23,29 +26,26 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 	pmClientMock := testutil.NewMockIPlanetmintClient(ctrl)
 	eClientMock := testutil.NewMockIElementsClient(ctrl)
 
-	db, err := leveldb.OpenFile("./conversions.db", nil)
+	db, err := leveldb.Open(storage.NewMemStorage(), nil)
 	if err != nil {
 		db.Close()
-		log.Fatal(err)
+		stdlog.Fatal(err)
 	}
-	// defer db.Close()
-	_ = service.NewR2PService(router, pmClientMock, eClientMock, db)
-
-	pmClientMock.EXPECT().IsLegitMachine(gomock.Any()).Return(&testutil.IsLegitMachine, nil).AnyTimes()
+	_ = service.NewR2PService(router, pmClientMock, eClientMock, db, log.GetLogger(log.DEBUG))
 
 	eClientMock.EXPECT().GetNewAddress(gomock.Any(), gomock.Any()).Return(testutil.ConfidentialAddr, nil).AnyTimes()
 
 	tests := []struct {
 		desc              string
 		planetmintAddress string
-		resBody           service.ReceiveAddressResponse
+		resBody           types.ReceiveAddressResponse
 		code              int
 		errorMsg          string
 	}{
 		{
 			desc:              "valid request",
 			planetmintAddress: testutil.PlanetmintAddress,
-			resBody: service.ReceiveAddressResponse{
+			resBody: types.ReceiveAddressResponse{
 				LiquidAddress:         testutil.ConfidentialAddr,
 				PlanetmintBeneficiary: testutil.PlanetmintAddress,
 			},
@@ -55,16 +55,16 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 		{
 			desc:              "missing request fields",
 			planetmintAddress: "",
-			resBody:           service.ReceiveAddressResponse{},
+			resBody:           types.ReceiveAddressResponse{},
 			code:              404,
 			errorMsg:          "404 page not found",
 		},
 		{
-			desc:              "Invalid planetmint machine address",
-			planetmintAddress: "plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx",
-			resBody:           service.ReceiveAddressResponse{},
+			desc:              "Invalid planetmint address",
+			planetmintAddress: "plmnt1w5dww355ck3u4w4hjxcx",
+			resBody:           types.ReceiveAddressResponse{},
 			code:              400,
-			errorMsg:          "{\"error:\":\"different machine resolved: plmnt1683t0us0r85840nsepx6jrk2kjxw7zrcnkf0rp instead of plmnt1w5dww335zhh98pzv783hqre355ck3u4w4hjxcx\"}",
+			errorMsg:          "{\"error\":\"decoding bech32 failed: invalid checksum (expected j98ean got 4hjxcx)\"}",
 		},
 	}
 
@@ -79,11 +79,32 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 			if w.Code != 200 {
 				assert.Equal(t, tc.errorMsg, w.Body.String())
 			} else {
-				var result service.ReceiveAddressResponse
+				var result types.ReceiveAddressResponse
 				err = json.Unmarshal(w.Body.Bytes(), &result)
 				assert.NoError(t, err)
 				assert.Equal(t, tc.resBody, result)
 			}
 		})
+	}
+}
+
+func TestPlmntAddress(t *testing.T) {
+	for _, testcase := range []struct {
+		address string
+		valid   bool
+	}{
+		{"plmnt000000000000000000000000000000000000000000000000000000000000", false},
+		{"plmnt10mq5nj8jhh27z7ejnz2ql3nh0qhzjnfvy50877", true},
+		{"plmnt10mq5nj8jhh27z7ejnz2ql3nh0qhzjnfvy5877", false},
+		{"plmnt10mq5nj8jhh27z7ejnz2ql3nh0qhzjnfvyx5877", false},
+		{"cosmos140e7u946a2nqqkvcnjpjm83d0ynsqem8g840tx", false},
+	} {
+		valid, err := service.VerifyAddress(testcase.address)
+		if testcase.valid {
+			assert.NoError(t, err)
+			assert.True(t, valid)
+		} else {
+			assert.False(t, valid)
+		}
 	}
 }

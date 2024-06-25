@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/planetmint/planetmint-go/lib"
 	daotypes "github.com/planetmint/planetmint-go/x/dao/types"
-	machinetypes "github.com/planetmint/planetmint-go/x/machine/types"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -18,7 +18,6 @@ import (
 type IPlanetmintClient interface {
 	MintPLMNT(beneficiary string, amount uint64, liquidTxHash string) (err error)
 	CheckMintRequest(txhash string) (mintRequest *daotypes.QueryGetMintRequestsByHashResponse, err error)
-	IsLegitMachine(address string) (machineResponse *machinetypes.QueryGetMachineByAddressResponse, err error)
 }
 
 type PlanetmintClient struct{}
@@ -35,7 +34,7 @@ func (pmc *PlanetmintClient) MintPLMNT(beneficiary string, amount uint64, liquid
 		LiquidTxHash: liquidTxHash,
 	}
 
-	addr := sdk.MustAccAddressFromBech32(cfg.PlanetmintAddress)
+	addr := types.MustAccAddressFromBech32(cfg.PlanetmintAddress)
 	msg := daotypes.NewMsgMintToken(cfg.PlanetmintAddress, &mintRequest)
 
 	_, err = lib.BroadcastTxWithFileLock(addr, msg)
@@ -54,7 +53,7 @@ func (pmc *PlanetmintClient) CheckMintRequest(txhash string) (mintRequest *daoty
 		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
 	)
 	if err != nil {
-		return mintRequest, err
+		return
 	}
 
 	daoClient := daotypes.NewQueryClient(grcpConn)
@@ -63,41 +62,27 @@ func (pmc *PlanetmintClient) CheckMintRequest(txhash string) (mintRequest *daoty
 		&daotypes.QueryGetMintRequestsByHashRequest{Hash: txhash},
 	)
 
-	if strings.Contains(err.Error(), codes.NotFound.String()) {
-		return mintRequest, nil
-	}
-
 	if err != nil {
-		return mintRequest, err
+		if strings.Contains(err.Error(), codes.NotFound.String()) {
+			err = nil
+		}
+		return
 	}
 
 	return
 }
 
-func (pmc *PlanetmintClient) IsLegitMachine(address string) (machineResponse *machinetypes.QueryGetMachineByAddressResponse, err error) {
-	cfg := config.GetConfig()
-	grcpConn, err := grpc.Dial(
-		cfg.PlanetmintRPCHost,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.ForceCodec(codec.NewProtoCodec(nil).GRPCCodec())),
-	)
+// verifyAddress verifies the integrity and prefix of a given address.
+func VerifyAddress(address string) (valid bool, err error) {
+	// Attempt to decode the address
+	_, err = types.AccAddressFromBech32(address)
 	if err != nil {
-		return machineResponse, err
+		return
 	}
-
-	machineClient := machinetypes.NewQueryClient(grcpConn)
-	machineResponse, err = machineClient.GetMachineByAddress(
-		context.Background(),
-		&machinetypes.QueryGetMachineByAddressRequest{Address: address},
-	)
-
-	if err != nil && strings.Contains(err.Error(), codes.NotFound.String()) {
-		return machineResponse, nil
+	if !strings.Contains(address, "plmnt") {
+		valid = false
+		return
 	}
-
-	if err != nil {
-		return machineResponse, err
-	}
-
+	valid = true
 	return
 }

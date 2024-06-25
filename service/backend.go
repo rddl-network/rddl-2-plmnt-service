@@ -23,7 +23,7 @@ func (r2p *R2PService) addConversionRequest(confidentialAddress string, planetmi
 
 	convReqBytes, err := json.Marshal(convReq)
 	if err != nil {
-		fmt.Printf("Error serializing ConversionRequest: %v", err)
+		r2p.logger.Error("error", "Error serializing ConversionRequest: "+err.Error())
 		return
 	}
 
@@ -31,7 +31,7 @@ func (r2p *R2PService) addConversionRequest(confidentialAddress string, planetmi
 	err = r2p.db.Put([]byte(confidentialAddress), convReqBytes, nil)
 	r2p.dbMutex.Unlock()
 	if err != nil {
-		fmt.Println("storing addresses in DB: " + err.Error())
+		r2p.logger.Error("error", "storing addresses in DB: "+err.Error())
 		return
 	}
 	return
@@ -72,7 +72,7 @@ func (r2p *R2PService) cleanupDB() {
 
 	// Check for any errors encountered during iteration
 	if err := iter.Error(); err != nil {
-		fmt.Println(err.Error())
+		r2p.logger.Error("error", err.Error())
 	}
 }
 
@@ -85,22 +85,22 @@ func (r2p *R2PService) convertArrivedFunds() {
 	for iter.Last(); iter.Valid(); iter.Prev() {
 		key := iter.Key()
 		value := iter.Value()
-
-		fmt.Printf("Key: %s, Value: %s\n", key, value)
+		msg := fmt.Sprintf("Key: %s, Value: %s\n", key, value)
+		r2p.logger.Info("msg", msg)
 		var req ConversionRequest
 		err := json.Unmarshal(value, &req)
 		if err != nil {
-			log.Printf("Failed to unmarshal entry: %s - %v", string(key), err)
+			r2p.logger.Error("error", fmt.Sprintf("Failed to unmarshal entry: %s - %v", string(key), err))
 			continue
 		}
 		deleteEntry, err := r2p.ExecutePotentialConversion(req)
 		if err != nil {
-			log.Printf("Failed to convert entry: %s - %v", string(key), err)
+			r2p.logger.Error("error", fmt.Sprintf("Failed to convert entry: %s - %v", string(key), err))
 			if deleteEntry {
-				log.Printf("delete entry: %s ", string(key))
+				r2p.logger.Info("msg", fmt.Sprintf("delete entry: %s ", string(key)))
 				err = r2p.deleteEntry(key)
 				if err != nil {
-					log.Printf("deletion of entry %s failed: %s", string(key), err.Error())
+					r2p.logger.Error("error", fmt.Sprintf("deletion of entry %s failed: %s", string(key), err.Error()))
 				}
 			}
 		}
