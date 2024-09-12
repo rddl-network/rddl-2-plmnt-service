@@ -86,7 +86,7 @@ func (r2p *R2PService) convertArrivedFunds() {
 		key := iter.Key()
 		value := iter.Value()
 		msg := fmt.Sprintf("Key: %s, Value: %s\n", key, value)
-		r2p.logger.Info("msg", msg)
+		r2p.logger.Debug("msg", msg)
 		var req ConversionRequest
 		err := json.Unmarshal(value, &req)
 		if err != nil {

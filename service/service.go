@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/rddl-network/go-logger"
+	log "github.com/rddl-network/go-utils/logger"
 	"github.com/spf13/viper"
 	"github.com/syndtr/goleveldb/leveldb"
 )

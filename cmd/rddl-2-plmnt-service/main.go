@@ -8,7 +8,7 @@ import (
 
 	"github.com/planetmint/planetmint-go/app"
 	"github.com/planetmint/planetmint-go/lib"
-	log "github.com/rddl-network/go-logger"
+	log "github.com/rddl-network/go-utils/logger"
 	"github.com/rddl-network/rddl-2-plmnt-service/config"
 	"github.com/rddl-network/rddl-2-plmnt-service/service"
 )

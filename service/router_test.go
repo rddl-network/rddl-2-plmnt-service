@@ -11,7 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
-	log "github.com/rddl-network/go-logger"
+	log "github.com/rddl-network/go-utils/logger"
 	"github.com/rddl-network/rddl-2-plmnt-service/service"
 	"github.com/rddl-network/rddl-2-plmnt-service/testutil"
 	"github.com/rddl-network/rddl-2-plmnt-service/types"
