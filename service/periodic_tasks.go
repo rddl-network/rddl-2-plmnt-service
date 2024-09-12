@@ -67,6 +67,7 @@ func (r2p *R2PService) ExecutePotentialConversion(conversion ConversionRequest) 
 		deleteEntry = true
 		msg := "tx " + liquidTxHash + " got already minted"
 		r2p.logger.Debug("msg", msg)
+		err = errors.New(msg)
 		return
 	}
 
@@ -86,7 +87,7 @@ func (r2p *R2PService) checkMintRequest(liquidTxHash string) (code int, err erro
 	// check whether mint request already exists
 	mr, err := r2p.pmClient.CheckMintRequest(liquidTxHash)
 	if err != nil {
-		r2p.logger.Error("error", "error while fetching mint request: "+err.Error())
+		r2p.logger.Error("msg", "error while fetching mint request: "+err.Error())
 		code = http.StatusInternalServerError
 		err = fmt.Errorf("error while fetching mint request: %w", err)
 		return
@@ -94,7 +95,7 @@ func (r2p *R2PService) checkMintRequest(liquidTxHash string) (code int, err erro
 
 	// return because mint request for txhash is already
 	if mr != nil {
-		r2p.logger.Info("msg", "error while fetching mint request: txid "+liquidTxHash+" got minted before ("+mr.String()+")")
+		r2p.logger.Error("msg", "error while fetching mint request: txid "+liquidTxHash+" got minted before ("+mr.String()+")")
 		code = http.StatusConflict
 		return
 	}
