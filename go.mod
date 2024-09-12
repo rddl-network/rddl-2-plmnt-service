@@ -9,7 +9,7 @@ require (
 	github.com/planetmint/planetmint-go v0.6.5
 	github.com/planetmint/planetmint-go/lib v0.2.1
 	github.com/rddl-network/elements-rpc v1.0.0
-	github.com/rddl-network/go-logger v0.0.2
+	github.com/rddl-network/go-utils v0.2.2
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.9.0
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
