@@ -96,12 +96,12 @@ func (r2p *R2PService) convertArrivedFunds() {
 		deleteEntry, err := r2p.ExecutePotentialConversion(req)
 		if err != nil {
 			r2p.logger.Error("error", fmt.Sprintf("Failed to convert entry: %s - %v", string(key), err))
-			if deleteEntry {
-				r2p.logger.Info("msg", fmt.Sprintf("delete entry: %s ", string(key)))
-				err = r2p.deleteEntry(key)
-				if err != nil {
-					r2p.logger.Error("error", fmt.Sprintf("deletion of entry %s failed: %s", string(key), err.Error()))
-				}
+		}
+		if deleteEntry {
+			r2p.logger.Info("msg", fmt.Sprintf("delete entry: %s ", string(key)))
+			err = r2p.deleteEntry(key)
+			if err != nil {
+				r2p.logger.Error("error", fmt.Sprintf("deletion of entry %s failed: %s", string(key), err.Error()))
 			}
 		}
 	}
