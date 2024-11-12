@@ -69,7 +69,6 @@ func TestGetReceiveAddressRoute(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
 			t.Parallel()
 			w := httptest.NewRecorder()
